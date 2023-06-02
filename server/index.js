@@ -31,11 +31,12 @@ app.post('/payment',async (req,res)=>{
                 source:token.id,
             })
         }
-        const paymentIntent =  await stripe.charges.create({
+        const paymentIntent =  await stripe.paymentIntents.create({
             customer:customer.id,
             amount:amount,
-            currency:'USD'
-
+            currency:'USD',
+            confirm:true,
+            receipt_email:token.email
         })
         console.log('PAY------>',paymentIntent)
     }catch(e){
