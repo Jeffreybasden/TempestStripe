@@ -15,7 +15,7 @@ const Stripe = (props)=>{
     const headers = {
     "Content-Type":"application/json"
     }
-    fetch(`http://localhost:4000/payment`,
+    fetch(`/api/payment`,
     {
     method:"POST",
     headers,
