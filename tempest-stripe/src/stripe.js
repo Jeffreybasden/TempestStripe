@@ -5,37 +5,43 @@ import StripeCheckout from 'react-stripe-checkout'
 
 
 const Stripe = (props)=>{
-
-const [Amount, setAmount] = useState('')
-const makePayment = token =>{
- const body = token
- const headers = {
+    
+    const [amount, setAmount] = useState('')
+    const getAmount = (e) =>{
+    setAmount(e.target.value)
+    }
+    const makePayment = async token =>{
+    const body = {token, amount:amount}
+    const headers = {
     "Content-Type":"application/json"
- }
- return fetch(`http://localhost:4000/payment`,
- {
+    }
+    fetch(`http://localhost:4000/payment`,
+    {
     method:"POST",
     headers,
     body:JSON.stringify(body)
- }
- ).then(res=>{
-    if(res.status === 200){
-        // return props.success()
     }
-}).catch()
+    ).then(res=>{
+    if(res.status === 200){
+        // return props.okay(true)
+    }
+    }).catch()
+
+    console.log(token)
 }
 
 return(
 <>
 <p>Dollar amount you want to purchase</p>
 <Row style={{marginBottom:20}}>
-<Input placeholder="$USD" onChange={(e)=>{setAmount(e)}} width={'10px'}/>
+<Input placeholder="$USD" onChange={(e)=>{getAmount(e)}} width={'10px'}/>
 </Row>
 <StripeCheckout
 email=""
+name=""
 stripeKey={process.env.REACT_APP_OPEN_KEY}
 token={makePayment}
-amount={Amount * 100}
+amount={amount * 100}
 billingAddress
 >
     <Button type="primary" color=" blue" >Buy Tempest</Button>
