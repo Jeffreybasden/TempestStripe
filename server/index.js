@@ -1,14 +1,16 @@
 require('dotenv').config()
-const  {express,Router} = require("express")
-const app = express()
+const express = require('express')
+const  {Router} = require("express")
+const Router = Router()
+const api = express()
 const cors = require('cors')
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 const uuid = require("uuid")
 import serverless from 'serverless-http';
 
 
-app.use(cors())
-app.use(express.json())
+api.use(cors())
+api.use(express.json())
 
 Router.post('/payment',async (req,res)=>{
     let customer;
@@ -49,6 +51,6 @@ Router.post('/payment',async (req,res)=>{
 // res.status(200).end()
 })
 
-app.use('/api/', Router)
+api.use('/api/', Router)
 
 export const handler = serverless(app)
