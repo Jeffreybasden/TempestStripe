@@ -51,6 +51,12 @@ router.post('/payment',async (req,res)=>{
 // res.status(200).end()
 })
 
+router.get('/test',(req,res)=>{
+    res.json({
+        hi:"hello"
+    })
+})
+
 api.use('/api/', router)
 
 export const handler = serverless(app)
