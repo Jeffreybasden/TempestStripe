@@ -17,7 +17,7 @@ const Stripe = ()=>{
     const headers = {
     "Content-Type":"application/json"
     }
-    fetch(`http://localhost:4000/payment`,
+    fetch(`https://tempestapi.onrender.com`,
     {
     method:"POST",
     headers,
