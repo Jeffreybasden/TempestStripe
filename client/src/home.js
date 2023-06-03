@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Stripe from './stripe'
 
 
-const Home = (prop) => {
+const Home = () => {
   const [current, setCurrent] = useState(0);
   const steps = [
     {
@@ -13,7 +13,7 @@ const Home = (prop) => {
     },
     {
       title: 'Pay',
-      content: <Stripe okay={prop.set}/>,
+      content: <Stripe/>,
     },
   ]
 

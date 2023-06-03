@@ -2,10 +2,12 @@ import {useState} from 'react'
 import {Input,Row ,Button} from "antd"
 import React from "react";
 import StripeCheckout from 'react-stripe-checkout'
+import Success from './success';
 
 
-const Stripe = (props)=>{
-    
+const Stripe = ()=>{
+    const [message, setMessage] = useState('')
+    const [okay, setOkay] = useState(false)
     const [amount, setAmount] = useState('')
     const getAmount = (e) =>{
     setAmount(e.target.value)
@@ -15,24 +17,35 @@ const Stripe = (props)=>{
     const headers = {
     "Content-Type":"application/json"
     }
-    fetch(`/api/payment`,
+    fetch(`http://localhost:4000/payment`,
     {
     method:"POST",
     headers,
     body:JSON.stringify(body)
     }
-    ).then(res=>{
-    if(res.status === 200){
-        // return props.okay(true)
+    ).then(res =>{
+    if(res.ok){
+        setMessage('Thank you for playing your part in keeping our planet clean!')
+        setOkay(true)
+    }else{
+        return res.json()
     }
-    }).catch()
+    }).then(data=>{
+        setMessage(data.error)
+        setOkay(true)
+    }).catch(e=>{
+        console.log(e)
+    })
 
-    console.log(token)
 }
 
-return(
-<>
-<p>Dollar amount you want to purchase</p>
+
+if(okay){
+    return( <Success mess={message}/>)
+}else{
+    return(
+    <>
+    <p>Dollar amount you want to purchase</p>
 <Row style={{marginBottom:20}}>
 <Input placeholder="$USD" onChange={(e)=>{getAmount(e)}} width={'10px'}/>
 </Row>
@@ -46,8 +59,11 @@ billingAddress
 >
     <Button type="primary" color=" blue" >Buy Tempest</Button>
 </StripeCheckout>
-</>
+</>    
 )
+} 
+
+
 }
 
 export default Stripe

@@ -1,25 +1,15 @@
 require('dotenv').config()
-const  {express,Router} = require("express")
+const  express = require("express")
 const app = express()
 const cors = require('cors')
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
-const uuid = require("uuid")
-import serverless from 'serverless-http';
-
-
 app.use(cors())
 app.use(express.json())
 
-Router.post('/payment',async (req,res)=>{
+app.post('/payment',async (req,res)=>{
     let customer;
     let {token} = req.body
-    let email = token.email
-    // delete token.email
-   
     let amount = req.body.amount * 100
-
-    console.log('REQ---->',token)
-    console.log('AMOUNT-------->',req.body.amount, token.id)
     try{
         const retrieveCustomer = await stripe.customers.search({query: `email:"${token.email}"`})
         // console.log('USER---->',retrieveCustomer.data[0])
@@ -37,18 +27,24 @@ Router.post('/payment',async (req,res)=>{
             amount:amount,
             currency:'USD',
             confirm:true,
-            receipt_email:token.email
+            receipt_email:token.email,
         })
-        console.log('PAY------>',paymentIntent)
+
+        if(paymentIntent.status === "succeeded" ){
+            res.status(200).end()
+            console.log('congrats on our purchase')
+        }
     }catch(e){
-        console.log('Error: ', e)
+        res.status(400)
+        res.json({error:e.message})
+        console.log(e.message)
     }
-    const idempontencyKey = uuid.v4()
+   
     
  
 // res.status(200).end()
 })
 
-app.use('/api/', Router)
 
-export const handler = serverless(app)
+
+app.listen(4000, ()=> console.log('server started',process.env.STRIPE_PRIVATE_KEY))
