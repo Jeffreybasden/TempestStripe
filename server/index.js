@@ -3,6 +3,12 @@ const  express = require("express")
 const app = express()
 const cors = require('cors')
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
+const bcrypt = require('bcrypt')
+
+
+
+
+
 app.use(cors())
 app.use(express.json())
 
@@ -10,17 +16,27 @@ app.post('/payment',async (req,res)=>{
     let customer;
     let {token} = req.body
     let amount = req.body.amount * 100
+    let password = await bcrypt.hash(req.body.password, 12)
     try{
         const retrieveCustomer = await stripe.customers.search({query: `email:"${token.email}"`})
         // console.log('USER---->',retrieveCustomer.data[0])
         if(retrieveCustomer.data[0]){
             customer = retrieveCustomer.data[0]
+            
+             customer = await stripe.customers.update(
+                customer.id,
+                {metadata: {password:password}, source:token.id}
+              );
+              console.log(customer)
         }else{
             customer = await stripe.customers.create({
                 email:token.email,
                 name: token.card.name,
                 source:token.id,
+                metadata: {password:password}
             })
+
+            console.log(customer)
         }
         const paymentIntent =  await stripe.paymentIntents.create({
             customer:customer.id,
@@ -47,4 +63,4 @@ app.post('/payment',async (req,res)=>{
 
 
 
-app.listen(4000, ()=> console.log('server started',process.env.STRIPE_PRIVATE_KEY))
+app.listen(4000, ()=> console.log('server started'))
