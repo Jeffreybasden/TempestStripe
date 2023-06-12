@@ -12,17 +12,15 @@ const bcrypt = require('bcrypt')
 app.use(cors())
 app.use(express.json())
 
-app.post('/payment',async (req,res)=>{
+app.post('/payment', async(req,res)=>{
     let customer;
     let {token} = req.body
     let amount = req.body.amount * 100
     let password = await bcrypt.hash(req.body.password, 12)
     try{
         const retrieveCustomer = await stripe.customers.search({query: `email:"${token.email}"`})
-        // console.log('USER---->',retrieveCustomer.data[0])
         if(retrieveCustomer.data[0]){
             customer = retrieveCustomer.data[0]
-            
              customer = await stripe.customers.update(
                 customer.id,
                 {metadata: {password:password}, source:token.id}
@@ -55,12 +53,8 @@ app.post('/payment',async (req,res)=>{
         res.json({error:e.message})
         console.log(e.message)
     }
-   
-    
- 
-// res.status(200).end()
 })
 
 
 
-app.listen(4000, ()=> console.log('server started'))
+app.listen(4000, ()=> console.log('server started',process.env.STRIPE_PRIVATE_KEY ))
