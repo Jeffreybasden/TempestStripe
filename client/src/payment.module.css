@@ -1,0 +1,10 @@
+
+.theHelp{
+
+    text-align: center;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 30px;
+    display: flex;
+}
