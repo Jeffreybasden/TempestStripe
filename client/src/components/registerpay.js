@@ -125,7 +125,6 @@ const Introduction = () =>{
         navigate('/')
       }else{
         let data = await res.json()
-        console.log(data)
         return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.error, 'Try Again')
       }
     }catch(e){

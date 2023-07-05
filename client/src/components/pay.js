@@ -56,7 +56,6 @@ const Pay = (props) => {
       return navigate('/dashboard')
     }else{
       let data = await res.json()
-      console.log("Data...........",data)
       return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.error, 'Try Again')
     } 
   }catch(e){
