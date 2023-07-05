@@ -24,7 +24,7 @@ const Dashboard = () =>{
 
     async function getUserInfo(){
       const jwt = localStorage.getItem('jwt')
-
+      //https://tempestapi.onrender.com
       fetch('http://localhost:4000/get-user', {
         method: 'GET',
         headers: {

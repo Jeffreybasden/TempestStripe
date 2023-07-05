@@ -45,9 +45,11 @@ exports.paymentRegister = async(req,res)=>{
             console.log('congrats on our purchase')
         }
     }catch(e){
-        res.status(400)
-        res.json({error:e.message})
-        console.log(e.message)
+        if(e){
+            res.status(400)
+            res.json({error:e.message})
+            console.log(e.message)
+        }
     }
 }
 
@@ -59,10 +61,9 @@ exports.payment = async(req,res)=>{
     try{
         //find customer if they already exist 
         const {data:[customer]}  = await stripe.customers.search({query: `metadata["jwt"]:"${jwt}"`})
-        let sourceAdded = stripe.customers.update(customer.id,{source:token.id})
+        let sourceAdded = await stripe.customers.update(customer.id,{source:token.id})
         setTimeout(()=>{},5000)
         if(sourceAdded){
-            setTimeout(async ()=>{
                 const paymentIntent =  await stripe.paymentIntents.create({
                     customer:customer.id,
                     amount:amount,
@@ -74,11 +75,13 @@ exports.payment = async(req,res)=>{
                     res.status(200).end()
                     console.log('congrats on our purchase')
                 }
-            },3000)
         }
     }catch(e){
-        res.status(400).json({error:e.message})
-        console.log(e.message)
+        if(e){
+            res.status(400)
+            res.json({error:e.message})
+        
+        }
     }
     
 }

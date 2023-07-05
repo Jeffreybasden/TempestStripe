@@ -43,24 +43,26 @@ const Pay = (props) => {
     'Authorization': `Bearer ${jwt}`,
     "Content-Type":"application/json"
     }
-    fetch(`http://localhost:4000/payment`,
+  try{
+   let res = await fetch(`http://localhost:4000/payment`,
     {
     method:"POST",
     headers,
     body:JSON.stringify(body)
-    }
-    ).then(res =>{
+    })
+
     if(res.ok){
-         props.notification("pay")
-        navigate('/dashboard')
+      props.notification("pay")
+      return navigate('/dashboard')
     }else{
-        return res.json() 
-    }
-    }).then(data=>{
-      if(data){
-        return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.error, 'Try Again')
-      }
-    }).catch()
+      let data = await res.json()
+      console.log("Data...........",data)
+      return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.error, 'Try Again')
+    } 
+  }catch(e){
+      console.log(e.message)
+  }
+
 
   }
 
@@ -122,7 +124,7 @@ const Pay = (props) => {
             <input style={{marginTop:40}} type="number" onChange={(e)=>getAmount(e)} className="form-input w-input" maxLength="256" name="email" data-name="Email" id="email" required=""/>
             {!wallet?
             <StripeCheckout
-            name
+            name=''
             stripeKey={process.env.REACT_APP_OPEN_KEY}
             token={makePayment}
             amount={amount *100}

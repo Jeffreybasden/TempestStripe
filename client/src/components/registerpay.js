@@ -105,25 +105,33 @@ const Introduction = () =>{
     const headers = {
     "Content-Type":"application/json"
     }
-   let res = await fetch(`http://localhost:4000/payment-register`,
-    {
-    method:"POST",
-    headers,
-    body:JSON.stringify(body)
+
+    try{
+
+      let res = await fetch(`http://localhost:4000/payment-register`,
+      {
+        method:"POST",
+        headers,
+        body:JSON.stringify(body)
+      }
+      )
+      
+      if(res.ok){
+        res = await res.json()
+        props.notification("register-pay")
+        localStorage.setItem('loggedIn','true')
+        localStorage.setItem('jwt',res.jwt)
+        localStorage.setItem('name',res.name)
+        navigate('/')
+      }else{
+        let data = await res.json()
+        console.log(data)
+        return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.error, 'Try Again')
+      }
+    }catch(e){
+      console.log(e)
     }
-    )
-    
-    if(res.ok){
-      res = await res.json()
-      props.notification("register-pay")
-      localStorage.setItem('loggedIn','true')
-      localStorage.setItem('jwt',res.jwt)
-      localStorage.setItem('name',res.name)
-      navigate('/')
-    }else{
-      let data = await res.json()
-      return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.message, 'Try Again')
-    }
+
   }
 
   async function checkLoggedIn(){
