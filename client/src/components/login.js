@@ -44,7 +44,7 @@ const Login = (props) =>{
         const headers = {
         "Content-Type":"application/json"
         }
-        
+          setLoading(true)
           fetch(`http://localhost:4000/login`,
           {
             method:"POST",
@@ -67,6 +67,7 @@ const Login = (props) =>{
             }
           }).catch(e=>{
             if(e){
+              setLoading(false)
                openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,e.message, 'Try Again')
                
             }
@@ -81,7 +82,7 @@ const Login = (props) =>{
 
     return(
 
-      loading ? <Spin><div className="content" style={{margin:"20px"}} /></Spin> :  <>
+        <>
       <div data-w-id="2fc6eb50-7d4a-7800-2204-b951b846909b" className="section hero hp-hero wf-section">
         <div className="basic-nav"></div>
       {contextHolder}
@@ -102,26 +103,31 @@ const Login = (props) =>{
             <img src="/coin-small_1coin-small.png" loading="lazy" alt="" className="logo-images"/>
           </div>
       <div className="title-text">Login</div>
-      <div className="_350-width grey">Enter your email and password to view Dashboard.</div>
+      <div className="_350-width grey">Enter your email and password to view your Dashboard.</div>
+      {loading ? <Spin><div className="content" style={{marginBottom:"120px", marginTop:"120px"}} /></Spin> : 
+      <>
       <div className="form-block w-form">
       <form id="email-form" name="email-form" data-name="Email Form" method="get">
+      
+    
         <h4>Email</h4>
         <input type="email" onChange={(e)=>setEmail(e.target.value)} className="form-input w-input" maxLength="256" name="email" data-name="Email" placeholder="john@email.com" id="email" required=""/>
         <h4>Password</h4>
         <input type="password" onChange={(e)=>setPassword(e.target.value)} className="form-input w-input" maxLength="256" name="email" data-name="Email" id="email" required=""/>
       </form>  
       </div>
-            <Row>
-                <a href="/">
-                <Button  type='primary' onClick={()=>window.location('/')}>Back</Button>
-                </a>
-                <Button style={{left:'10%'}}  type='primary' onClick={getUser}>Login</Button>
-            </Row>
+        <Row>
+          <a href="/">
+            <Button  type='primary' onClick={()=>window.location('/')}>Back</Button>
+          </a>
+          <Button style={{left:'10%'}}  type='primary' onClick={getUser}>Login</Button>
+        </Row>
+      </>}
           </div>
-        </div>
+        </div> 
         
-        </div>
-      </>
+     </div>
+    </>
     )
 }
 

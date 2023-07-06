@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 const Pay = (props) => {
     const [loggedIn, setLoggedIn] = useState(false)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
     const [amount, setAmount] = useState('')
     const [wallet, setWallet] = useState(false)
@@ -44,6 +44,7 @@ const Pay = (props) => {
     "Content-Type":"application/json"
     }
   try{
+    setLoading(true)
    let res = await fetch(`http://localhost:4000/payment`,
     {
     method:"POST",
@@ -55,6 +56,7 @@ const Pay = (props) => {
       props.notification("pay")
       return navigate('/dashboard')
     }else{
+      setLoading(false)
       let data = await res.json()
       return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.error, 'Try Again')
     } 
@@ -72,7 +74,6 @@ const Pay = (props) => {
   async function checkLoggedIn(){
     // check if logged in local storage
     if(localStorage.getItem('loggedIn') !== null){
-        setLoading(false)
         if(localStorage.getItem('wallet') === null){
             setWallet(false)
         }
@@ -88,7 +89,7 @@ const Pay = (props) => {
   },[loggedIn])
 
       return (
-        loading ? <Spin><div className="content" style={{margin:"20px"}} /></Spin> : 
+        
         <> 
         <div data-w-id="2fc6eb50-7d4a-7800-2204-b951b846909b" className="section hero hp-hero wf-section"> 
         <div className="basic-nav"></div>
@@ -118,6 +119,7 @@ const Pay = (props) => {
             <div className="h3">TMPST Tokens</div>
           </div>
           <div className="_350-width grey">It is currently presale making the price of each tempest token $0.15. When presale ends the price for a Tempest token will be $0.25. </div>
+          {loading ? <Spin><div className="content" style={{margin:"80px"}} /></Spin> : <>
           <div className="form-block w-form">
             <h4>Dollar amount </h4>
             <input style={{marginTop:40}} type="number" onChange={(e)=>getAmount(e)} className="form-input w-input" maxLength="256" name="email" data-name="Email" id="email" required=""/>
@@ -132,6 +134,7 @@ const Pay = (props) => {
             </StripeCheckout>:
             <button type="primary" onClick={payWithWallet} data-wait="Please wait..." className="form-btn w-button">Buy Tempest</button>}
           </div>
+          </>}
           </div>
         </div>
         </div>

@@ -7,14 +7,11 @@ import { NavLink } from "react-router-dom";
 
 const NavBar = (props) =>{
   const navigate = useNavigate()
- 
   const useScrollOpacity = () => {
     const [opacity, setOpacity] = useState(0);
-  
     useEffect(() => {
       const handleScroll = () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  
         if (scrollTop > 0) {
           // Scrolling down
           setOpacity(1);
@@ -72,7 +69,6 @@ const jwt = localStorage.getItem("jwt")
         localStorage.removeItem('name')
         props.notification("logout")
         navigate('/')
-        
       }
 }
 

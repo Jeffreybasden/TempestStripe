@@ -2,6 +2,9 @@ import React from "react";
 import { useState, useEffect } from "react";
 import {Spin} from 'antd'
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+
+
 const LandingPage = () =>{
   const navigate = useNavigate()
   const [loggedIn, setLoggedIn] = useState(false)
@@ -45,14 +48,17 @@ const LandingPage = () =>{
               <div>Connect wallet</div>
             </a>
             <div className="_350-width grey _15-top-bottom">or</div>
+              <Link style={{textDecoration: 'none'}} to={"/login"}>
             <a href="/login"  className="button-1 green w-inline-block">
               <div className="icon-embed w-embed"><svg width="16" height="12" viewBox="0 0 16 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M2 1C1.44687 1 1 1.44687 1 2V3.24687L7.1125 7.72812C7.64062 8.11562 8.35938 8.11562 8.8875 7.72812L15 3.24687V2C15 1.44687 14.5531 1 14 1H2ZM1 4.4875V10C1 10.5531 1.44687 11 2 11H14C14.5531 11 15 10.5531 15 10V4.4875L9.47812 8.53438C8.59687 9.17813 7.4 9.17813 6.52187 8.53438L1 4.4875ZM0 2C0 0.896875 0.896875 0 2 0H14C15.1031 0 16 0.896875 16 2V10C16 11.1031 15.1031 12 14 12H2C0.896875 12 0 11.1031 0 10V2Z" fill="black"></path>
                 </svg></div>
               <div>Sign in with email</div>
             </a>
+              </Link>
+
           </div>
-          <div className="_350-width grey _30-margin-top">Don&#x27;t have an account yet? <a href="/register">Sign up</a>.</div>
+          <div className="_350-width grey _30-margin-top">Don&#x27;t have an account yet? <Link to={"/register"} > <a href="/register">Sign up</a>.</Link></div>
         </div>
       </div>
     </div>

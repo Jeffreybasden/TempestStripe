@@ -47,7 +47,7 @@ const Introduction = () =>{
 
   const RegisterPay = (props) => {
     const [loggedIn, setLoggedIn] = useState(false)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
     const [amount, setAmount] = useState('')
     let [current, setCurrent] = useState(1)
@@ -107,7 +107,7 @@ const Introduction = () =>{
     }
 
     try{
-
+        setLoading(true)
       let res = await fetch(`http://localhost:4000/payment-register`,
       {
         method:"POST",
@@ -124,6 +124,7 @@ const Introduction = () =>{
         localStorage.setItem('name',res.name)
         navigate('/')
       }else{
+        setLoading(false)
         let data = await res.json()
         return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.error, 'Try Again')
       }
@@ -140,7 +141,7 @@ const Introduction = () =>{
     }
     if(localStorage.getItem('loggedIn') !== null){
         setLoggedIn(true)
-    }else setLoading(false)
+    }
     
   }
  
@@ -151,8 +152,7 @@ const Introduction = () =>{
   },[loggedIn])
 
       return (
-        loading ? <Spin><div className="content" style={{margin:"20px"}} /></Spin> :  <>
-          
+         <>
         <div data-w-id="2fc6eb50-7d4a-7800-2204-b951b846909b" className="section hero hp-hero wf-section"> 
         <div className="basic-nav"></div>
         {contextHolder}
@@ -161,9 +161,6 @@ const Introduction = () =>{
             <div className="filled-step-container">
               <div className="number-container">
                 <div>
-                {current === 1 &&'1'}
-                {current === 2 &&'2'}
-                {current === 3 &&'3'}
                 </div>
               </div>
               <div className="green-text">
@@ -189,6 +186,7 @@ const Introduction = () =>{
             <div className="h3">TMPST Tokens</div>
           </div>
           <div className="_350-width grey">It is currently presale making the price of each tempest token $0.15. When presale ends the price for a Tempest token will be $0.25. </div>
+           {loading ? <Spin><div className="content" style={{marginBottom:"120px", marginTop:"10px"}} /></Spin> :   <>
           <div className="form-block w-form">
           <h4>Dollar amount </h4>
             <input style={{marginTop:40}} type="number" onChange={(e)=>getAmount(e)} className="form-input w-input" maxLength="256" name="email" data-name="Email" id="email" required=""/>
@@ -203,9 +201,10 @@ const Introduction = () =>{
             </StripeCheckout> 
           </div>
             </>}
+        </>}
             <Row>
-          <Button hidden={current === 1} type='primary' onClick={()=>setCurrent(current -= 1)}>previous</Button>
-          <Button style={{left:'10%'}} hidden={current === 3 && true} type='primary' onClick={current === 2 ? ()=> verifyCreds() : ()=> setCurrent(current += 1) }>{current === 2 ? 'Signup': 'Next' }</Button>
+          <Button hidden={current === 1 || loading} type='primary' onClick={()=>setCurrent(current -= 1)}>previous</Button>
+          <Button style={{left:'10%'}} hidden={current === 3 || loading} type='primary' onClick={current === 2 ? ()=> verifyCreds() : ()=> setCurrent(current += 1) }>{current === 2 ? 'Signup': 'Next' }</Button>
             </Row>
           </div>
         </div>

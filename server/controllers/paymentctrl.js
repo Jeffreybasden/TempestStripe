@@ -2,6 +2,8 @@ const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 const bcrypt = require('bcrypt')
 const JWT = require('jsonwebtoken')
 const secret = 'theValueIsInYouNotWithout'
+
+
 exports.paymentRegister = async(req,res)=>{
     let customer;
     let {token} = req.body
@@ -13,8 +15,9 @@ exports.paymentRegister = async(req,res)=>{
         const retrieveCustomer = await stripe.customers.search({query: `email:"${token.email}"`})
         if(retrieveCustomer.data[0]){
             customer = retrieveCustomer.data[0]
+            //check if the have a password already
             if(customer.metadata.password){
-                return res.status(400).json({message:"You already have an account please go to login page"})
+                return res.status(400).json({error:"You already have an account please go to login page"})
             }
             customer = await stripe.customers.update(
                 customer.id,
@@ -44,10 +47,12 @@ exports.paymentRegister = async(req,res)=>{
             res.status(200).json({name:customer.name,jwt:jwt})
             console.log('congrats on our purchase')
         }
+            
+        
     }catch(e){
         if(e){
             res.status(400)
-            res.json({error:e.message})
+            res.json({error:e.message + " As you now have an account please login and retry your purchase"})
             console.log(e.message)
         }
     }
