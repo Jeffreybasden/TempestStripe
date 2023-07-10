@@ -45,7 +45,7 @@ const Pay = (props) => {
     }
   try{
     setLoading(true)
-   let res = await fetch(`http://localhost:4000/payment`,
+   let res = await fetch(`https://tempestapi.onrender.com/payment`,
     {
     method:"POST",
     headers,

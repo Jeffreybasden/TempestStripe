@@ -1,5 +1,5 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate  } from 'react-router-dom';
 import RegisterPay from './components/registerpay'
 import NavBar from './components/navbar';
 import LandingPage from './components/landingpage';
@@ -8,10 +8,58 @@ import Login from './components/login'
 import Register from './components/register';
 import Pay from './components/pay';
 import { CheckCircleOutlined, CloseOutlined } from '@ant-design/icons';
-import {notification} from 'antd';
-
+import {notification,Alert,Space,} from 'antd';
+import {ethers} from 'ethers'
+import { useEffect, useState } from 'react';
 
 const App = () => {
+  const [Provider, SetProvider] = useState(undefined)
+  const [notAvax, setAvax] = useState(false)
+  const [account, setAccount] = useState(false)
+  const navigate = useNavigate()
+
+const connectWallet = async () =>{
+  let provider =  new ethers.providers.Web3Provider(window.ethereum)
+  let Signer = await provider.getSigner().getAddress()
+  setAccount(Signer)
+  let Network = await provider.getNetwork()
+  if(Network.chainId !== 43114){
+    console.log(Network)
+    setAvax(true)
+  }
+  
+  SetProvider(provider)
+  localStorage.setItem('loggedIn','true')
+  localStorage.setItem('wallet', Signer)
+  navigate('/dashboard')
+
+}
+
+
+window.ethereum.on('chainChanged', async(Network)=>{
+  // try{
+   
+   if(Network === '0xa86a'){
+     setAvax(false)
+    }else{
+      setAvax(true)
+    }
+    console.log(notAvax)
+
+      // let accounts = await window.ethereum.send("eth_requestAccounts", [])
+      // setAccount(accounts[0])
+    
+  // }catch(e){
+  //  console.log(e)
+   
+  // 
+})
+
+window.ethereum.on('accountsChanged', async (account)=>{
+  console.log(account)
+  setAccount(account[0])
+  localStorage.setItem('wallet', account[0])
+})
 
   const [api, contextHolder] = notification.useNotification();
   const openNotification = async(placement, icon, message, title ) => {
@@ -41,6 +89,13 @@ const App = () => {
       }
   
     }
+
+
+
+useEffect(()=>{
+ 
+},[notAvax])
+
   return (
     <>
       {contextHolder}
@@ -51,13 +106,23 @@ const App = () => {
     </div>
       <div className="bg-grey">
       <NavBar notification={successfulAction}></NavBar>
+      {notAvax && <Space
+            direction="vertical"
+            style={{
+              width: '100%', justifyContent:"center", 
+            }}
+          >
+    
+      <Alert style={{textAlign:"center"}} message="Switch to the Avalanche network in order to use this site" type="warning" />
+    
+  </Space>}
       <Routes>
-        <Route path='/' element= {<LandingPage notification={successfulAction}/>}/>
-        <Route path='/dashboard' element= {<Dashboard notification={successfulAction}/>}/>
+        <Route path='/' element= {<LandingPage connect={connectWallet} notification={successfulAction}/>}/>
+        <Route path='/dashboard' element= {<Dashboard account={account} provider={Provider} notification={successfulAction}/>}/>
         <Route path='/register' element= {<Register notification={successfulAction}/>}/>
         <Route path='/login' element= {<Login notification={successfulAction}/>}/>
         <Route path='/register-pay' element={ <RegisterPay notification={successfulAction}/>}/>
-        <Route path='/pay' element= {<Pay notification={successfulAction}/>}/>
+        <Route path='/pay' element= {<Pay provider={Provider} notification={successfulAction}/>}/>
         <Route path='*'  element= {<Dashboard notification={successfulAction}/>}/>
       </Routes>
       </div>

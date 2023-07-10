@@ -108,7 +108,7 @@ const Introduction = () =>{
 
     try{
         setLoading(true)
-      let res = await fetch(`http://localhost:4000/payment-register`,
+      let res = await fetch(`https://tempestapi.onrender.com/payment-register`,
       {
         method:"POST",
         headers,

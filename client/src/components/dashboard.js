@@ -3,8 +3,12 @@ import { useState, useEffect } from "react";
 import { Spin } from "antd";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { ethers } from "ethers";
+import preTempestAbi from '../abi/preTempestAbi.json'
+const preTempestAddress = '0x5f893d6347b501B0D85f4e95296CF9B9701A93B8'
 
-const Dashboard = () =>{
+
+const Dashboard = (props) =>{
     const navigate = useNavigate()
     const [loading,setLoading] = useState(true)
     const [bigSpin, setBigSpin] = useState(true)
@@ -17,15 +21,35 @@ const Dashboard = () =>{
     const [ExpectedRewards, setExpectedRewards] = useState(0)
     
     //get user info if its a wallet
-    async function getWalletInfo(){
-      const address = localStorage.getItem('wallet')
-    }
-
-
+  async function getWalletInfo(){
+      try{
+        let provider = new ethers.providers.JsonRpcProvider('https://api.avax.network/ext/bc/C/rpc')
+          const userAddress = localStorage.getItem('wallet')
+          const preTempestContract = new ethers.Contract(preTempestAddress, preTempestAbi,provider)
+          let noFormatBalance = await preTempestContract.balanceOf(userAddress)
+          noFormatBalance = noFormatBalance.toString()
+          let Balance = Number(ethers.utils.formatUnits(noFormatBalance,18))
+          let Cost = Balance *.15
+          let Market = Balance*.15
+          let Expected = (Market * 1.1)/12
+          setName(props.account)
+          setBalance(Balance)
+          setCost(Cost)
+          setMarketValue(Market)
+          setExpectedRewards(Expected)
+          setLoading(false)
+        }catch(e){
+          console.log(e)
+        }
+      
+  
+  }
+      
+      
     async function getUserInfo(){
       const jwt = localStorage.getItem('jwt')
       //https://tempestapi.onrender.com
-      fetch('http://localhost:4000/get-user', {
+      fetch('https://tempestapi.onrender.com/get-user', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -65,11 +89,8 @@ const Dashboard = () =>{
       if(localStorage.getItem('loggedIn') !== null){
         setBigSpin(false)
         if(localStorage.getItem("jwt") === null){
-          const address = localStorage.getItem('wallet')
           return getWalletInfo()
-          
-        }else{
-          
+        }else{ 
           return getUserInfo()
         }
       }else{
@@ -79,9 +100,17 @@ const Dashboard = () =>{
       
     }
 
+    const reconnectWallet =async () =>{
+      if(localStorage.getItem("wallet")){
+        let accounts = await window.ethereum.send("eth_requestAccounts", [])
+        setName(accounts[0])
+      }
+    }
+
     useEffect(()=>{
       checkLoggedIn()
-    },[])
+     reconnectWallet()
+    },[props.account])
       
     
 

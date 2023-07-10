@@ -54,22 +54,29 @@ const NavBar = (props) =>{
 
 async function logOut(){
 
-const jwt = localStorage.getItem("jwt")
-  let res = await fetch('http://localhost:4000/logout', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${jwt}`,
-          'Content-Type': 'application/json'
-        }
-      })
+  if(localStorage.getItem("jwt")){
+    const jwt = localStorage.getItem("jwt")
+      let res = await fetch('https://tempestapi.onrender.com/logout', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${jwt}`,
+              'Content-Type': 'application/json'
+            }
+          })
+    
+          if(res.ok){
+            localStorage.removeItem('loggedIn')
+            localStorage.removeItem('jwt')
+            localStorage.removeItem('name')
+            props.notification("logout")
+            navigate('/')
+          }
+  }else{
+    localStorage.removeItem('loggedIn')
+    localStorage.removeItem('wallet')
+    navigate('/')
+  }
 
-      if(res.ok){
-        localStorage.removeItem('loggedIn')
-        localStorage.removeItem('jwt')
-        localStorage.removeItem('name')
-        props.notification("logout")
-        navigate('/')
-      }
 }
 
 const payHandler = (e) =>{

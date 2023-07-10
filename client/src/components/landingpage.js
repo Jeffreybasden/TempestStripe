@@ -5,10 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 
-const LandingPage = () =>{
+const LandingPage = (props) =>{
   const navigate = useNavigate()
   const [loggedIn, setLoggedIn] = useState(false)
   const [loading, setLoading] = useState(true)
+
 
   async function checkLoggedIn(){
     // check if logged in local storage
@@ -41,7 +42,7 @@ const LandingPage = () =>{
           <div className="title-text">Buy Now, Save Tomorrow</div>
           <div className="_350-width grey">Choose one of the options below to start.</div>
           <div className="_30-margin-top">
-            <a href="#" className="button-1 w-inline-block">
+            <a href="#"  onClick={props.connect} className="button-1 w-inline-block">
               <div className="icon-embed w-embed"><svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M2.5 0C1.11875 0 0 1.11875 0 2.5V11.5C0 12.8813 1.11875 14 2.5 14H13.5C14.8813 14 16 12.8813 16 11.5V4.5C16 3.11875 14.8813 2 13.5 2H3.5C3.225 2 3 2.225 3 2.5C3 2.775 3.225 3 3.5 3H13.5C14.3281 3 15 3.67188 15 4.5V11.5C15 12.3281 14.3281 13 13.5 13H2.5C1.67188 13 1 12.3281 1 11.5V2.5C1 1.67188 1.67188 1 2.5 1H14.5C14.775 1 15 0.775 15 0.5C15 0.225 14.775 0 14.5 0H2.5ZM12 8.75C12.1989 8.75 12.3897 8.67098 12.5303 8.53033C12.671 8.38968 12.75 8.19891 12.75 8C12.75 7.80109 12.671 7.61032 12.5303 7.46967C12.3897 7.32902 12.1989 7.25 12 7.25C11.8011 7.25 11.6103 7.32902 11.4697 7.46967C11.329 7.61032 11.25 7.80109 11.25 8C11.25 8.19891 11.329 8.38968 11.4697 8.53033C11.6103 8.67098 11.8011 8.75 12 8.75Z" fill="white"></path>
                 </svg></div>
