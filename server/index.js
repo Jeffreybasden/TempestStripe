@@ -21,4 +21,4 @@ app.use(authRoutes)
 
 
 
-app.listen(4000, ()=> console.log('server started',process.env.STRIPE_PRIVATE_KEY ))
+app.listen(4000, ()=> console.log('server started',process.env.STRIPE_PRIVATE_KEY, process.env.E_TEMPEST ))
