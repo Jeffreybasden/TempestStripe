@@ -2,8 +2,10 @@ const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 const bcrypt = require('bcrypt')
 const Jwt = require('jsonwebtoken')
 const secret = 'theValueIsInYouNotWithout'
-
-
+var coinbase = require('coinbase-commerce-node');
+var Client = coinbase.Client;
+var Charge = coinbase.resources.Charge;
+Client.init(process.env.E_TEMPEST);
 
 
 
@@ -120,4 +122,44 @@ exports.LogOut = async(req,res)=>{
         }catch(e){  
             console.log(e)
         }
+}
+
+
+exports.Coinbase = async(req,res)=>{
+    let name 
+    let type = req.body.type
+
+    if(type === 'jwt'){
+        // the loop is here because the stripe api is slow to update since it is all saved in stripe. So we call it until we get a the proper data
+            try{
+                const {data:[customer]} = await stripe.customers.search({query: `metadata["jwt"]:"${req.body.name}"`})
+                if(customer){
+                    name = customer.email
+                }else throw new Error('jwt did not update yet retrying')
+            }catch(e){
+                console.log(e)
+                return res.status(400).end() 
+            }
+        
+    }else{
+        name = req.body.name
+    }
+
+    Charge.all({}, function (error, list, pagination) {
+        if(error){
+         return console.log(error)
+        }
+        
+        let count = 1
+        let parsedCharges = list.reduce((acc,charge)=>{
+            if(charge.name === name){
+                acc.push({key:count, name:charge.name, amount:charge.pricing.local, url:charge.hosted_url, status:charge.timeline[charge.timeline.length-1], expires:charge.expires_at})
+                count++
+            }
+
+            return acc
+        },[]) 
+        return res.json(parsedCharges)
+      });
+
 }
