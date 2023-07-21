@@ -45,7 +45,7 @@ const Login = (props) =>{
         "Content-Type":"application/json"
         }
           setLoading(true)
-          fetch(`https://tempestapi.onrender.com/login`,
+          fetch(`http://localhost:4000/login`,
           {
             method:"POST",
             headers,
@@ -59,6 +59,7 @@ const Login = (props) =>{
             
           }).then(data => {
             props.notification('login')
+            props.setLoggedIn(true)
             if(data){
               localStorage.setItem('jwt',data.jwt)
               localStorage.setItem('loggedIn', 'true')

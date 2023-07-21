@@ -42,6 +42,7 @@ const Register = (props) =>{
             localStorage.setItem('jwt',res.jwt)
             localStorage.setItem('name',res.name)
             localStorage.setItem('loggedIn','true')
+            props.setLoggedIn(true)
             return navigate('/dashboard')
           }else{
             let error = await res.json()

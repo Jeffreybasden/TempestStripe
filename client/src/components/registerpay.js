@@ -119,12 +119,14 @@ const Introduction = () =>{
       if(res.ok){
         res = await res.json()
         props.notification("register-pay")
+        props.setLoggedIn(true)
         localStorage.setItem('loggedIn','true')
         localStorage.setItem('jwt',res.jwt)
         localStorage.setItem('name',res.name)
         navigate('/')
       }else{
         setLoading(false)
+        props.setLoggedIn(true)
         let data = await res.json()
         return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.error, 'Try Again')
       }

@@ -3,7 +3,7 @@ import { useState, useEffect} from "react";
 import {UserOutlined} from "@ant-design/icons"
 import { Row, Dropdown,} from "antd";
 import { useNavigate } from "react-router-dom";
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 
 const NavBar = (props) =>{
   const navigate = useNavigate()
@@ -32,7 +32,13 @@ const NavBar = (props) =>{
     return opacity;
   };
   const opacity = useScrollOpacity()
-  
+  const loggedIn = () =>{
+    if(localStorage.getItem('loggedIn')){
+      props.setLoggedIn(true)
+    }
+  }
+
+
   const items = [
     {
       key: '1',
@@ -52,12 +58,35 @@ const NavBar = (props) =>{
     }
   ];
 
-async function logOut(){
 
-  if(localStorage.getItem("jwt")){
-    const jwt = localStorage.getItem("jwt")
-      let res = await fetch('https://tempestapi.onrender.com/logout', {
-            method: 'POST',
+  const options = [
+    {
+      key: '3',
+      label: (
+           <div><NavLink to={'/commerce'} style={{textDecoration: 'none'}}>
+            Pay with BTC Eth and more
+           </NavLink>
+           </div> 
+      ),
+    },
+    {
+      key: '4',
+      label: (
+        <div> <NavLink to={'/pay'} style={{textDecoration: 'none'}}>
+        pay with card or wallet
+        </NavLink>
+        </div>
+      ),
+    }
+  ];
+
+  
+  async function logOut(){
+
+    if(localStorage.getItem("jwt")){
+      const jwt = localStorage.getItem("jwt")
+      let res = await fetch('http://localhost:4000/logout', {
+        method: 'POST',
             headers: {
               'Authorization': `Bearer ${jwt}`,
               'Content-Type': 'application/json'
@@ -69,29 +98,25 @@ async function logOut(){
             localStorage.removeItem('jwt')
             localStorage.removeItem('name')
             props.notification("logout")
+            props.setLoggedIn(false)
             navigate('/')
           }
   }else{
     localStorage.removeItem('loggedIn')
     localStorage.removeItem('wallet')
+    props.setLoggedIn(false)
     navigate('/')
   }
 
 }
 
-const payHandler = (e) =>{
-  e.preventDefault()
 
-  if(localStorage.getItem('loggedIn') === null){
-    return navigate('/register-pay')
-  }else{
-    return navigate('/pay')
-  }
-}
+useEffect(()=>{
+loggedIn()
+},[props.loggedIn])
 
-
-    return(
-        <div data-collapse="medium" data-animation="default" data-duration="400" data-easing="ease" data-easing2="ease" role="banner" className="navbar w-nav">
+return(
+  <div data-collapse="medium" data-animation="default" data-duration="400" data-easing="ease" data-easing2="ease" role="banner" className="navbar w-nav">
         <div className="fill-navbar"  style={{opacity: `${opacity}`}}></div>
         <div className="container w-container">
           <a href="/" id="first_element" className="brand nav-btn w-nav-brand"><img src="https://uploads-ssl.webflow.com/6421d264d066fd2b24b91b20/6421d264d066fd6711b91c04_tempest_logo_spiral_with_coin.png" loading="eager" alt="" className="logo-icon-2"/><img src="https://uploads-ssl.webflow.com/6421d264d066fd2b24b91b20/6421d264d066fdff16b91b5b_tempest-logo-name.svg" loading="lazy" alt="" className="logo-name-2"/></a>
@@ -136,12 +161,22 @@ const payHandler = (e) =>{
                   <div>Login</div>
                   </button>
                   <div className="right-two-sign-start vert">
+                    {props.loggedIn?
+                      <Dropdown trigger={["click"]} overlayStyle={{zIndex:"99999"}}
+                      menu={{
+                        items:options,
+                       }}
+                       placement="bottom"
+                       > 
                     <div className="button-div nav-btn">
-                      <a onClick={payHandler} className="button-1 w-inline-block">
+                      <div className="button-1 w-inline-block">
                         <div><img src="https://uploads-ssl.webflow.com/6421d264d066fd2b24b91b20/6446ac737eb6c0523ebcdbef_coin-small.png" loading="lazy" alt="" className="coin-button-image"/></div>
                         <div>Buy Now</div>
-                      </a>
-                    </div>
+                      </div>
+                    </div> 
+                      </Dropdown>
+                    :
+                    <></>}
                     <div className="obsidian-div center">
                       <div className="grey-text _10-pt">Verified by</div>
                       <div className="obsidian-svg smaller w-embed"><svg  viewBox="0 0 258 59" fill="none" height="100%" xmlns="http://www.w3.org/2000/svg">

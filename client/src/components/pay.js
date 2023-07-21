@@ -6,6 +6,9 @@ import { CheckCircleOutlined, CloseOutlined } from '@ant-design/icons';
 import {notification} from 'antd';
 import styles from '../payment.module.css'
 import { useNavigate } from "react-router-dom";
+import { ethers } from "ethers";
+import presaleContractAbi from '../abi/presaleContractAbi.json'
+import usdcAbi from '../abi/usdcAbi.json'
 
 
 const Pay = (props) => {
@@ -17,6 +20,21 @@ const Pay = (props) => {
     const [display, setDisplay] = useState(0)
     const [usd, setUsd] = useState(0)
     const [api, contextHolder] = notification.useNotification();
+    const [provider, setProvider] = useState()
+
+  const getProvider = () =>{
+    if(localStorage.getItem("wallet")){
+      if(props.provider !== undefined){
+        return setProvider(props.provider)
+      }else{
+        let tempProvider =  new ethers.providers.Web3Provider(window.ethereum)
+        return setProvider(tempProvider)
+      }
+    }
+  }
+
+    const usdcContract = new ethers.Contract('0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',usdcAbi,provider?.getSigner())
+    const presaleContract = new ethers.Contract('0x7e9d22f5EBF3f4808A259E9F864a7d24f6E79461',presaleContractAbi,provider?.getSigner())
    
 
   const openNotification = (placement, icon, message, title ) => {
@@ -67,8 +85,18 @@ const Pay = (props) => {
 
   }
 
-  async function payWithWallet(){
+  async function payWithWallet (){
+    const amountDecimals = ethers.utils.parseUnits(amount.toString(),6)
+    const amount18Decimal = ethers.utils.parseUnits(amount.toString(),18)
+    try{
+      await usdcContract.approve(presaleContract.address, amountDecimals)
+      await presaleContract.buyTokens(amount18Decimal)
 
+    }catch(e){
+      console.log(e)
+      return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,e.message, 'Try Again')
+    }
+    
   }
 
   async function checkLoggedIn(){
@@ -76,6 +104,8 @@ const Pay = (props) => {
     if(localStorage.getItem('loggedIn') !== null){
         if(localStorage.getItem('wallet') === null){
             setWallet(false)
+        }else{
+          setWallet(true)
         }
     }else{
       return navigate('/')
@@ -85,6 +115,7 @@ const Pay = (props) => {
 
   useEffect(()=>{
     checkLoggedIn()
+    getProvider()
     
   },[loggedIn])
 
@@ -110,8 +141,8 @@ const Pay = (props) => {
           </div>
           <div className={styles.theHelp}>
             
-            <div className="images-container"><img src="/stripe-logo.png" loading="lazy" sizes="(max-width: 479px) 100vw, 83.890625px" srcset="/stripe-logo-p-500.png 500w, /stripe-logo.png 616w" alt="" className="logo-images"/>
-            <div>+</div><img src="/coin-small_1coin-small.png" loading="lazy" alt="" className="logo-images"/>
+            <div className="images-container">{!wallet&& <><img src="/stripe-logo.png" loading="lazy" sizes="(max-width: 479px) 100vw, 83.890625px" srcset="/stripe-logo-p-500.png 500w, /stripe-logo.png 616w" alt="" className="logo-images"/>
+            <div>+</div></>}<img src="/coin-small_1coin-small.png" loading="lazy" alt="" className="logo-images"/>
           </div>
           <div className="title-text">Get Your Tokens</div>
           <div className="light-blue-container _15-margin-top"><img src="images/coin-small_1coin-small.png" loading="lazy" alt="" className="coin-icon"/>
@@ -131,7 +162,7 @@ const Pay = (props) => {
             amount={amount *100}
             billingAddress
             ><button type="primary" data-wait="Please wait..." className="form-btn w-button">Buy Tempest</button> 
-            </StripeCheckout>:
+            </StripeCheckout> :
             <button type="primary" onClick={payWithWallet} data-wait="Please wait..." className="form-btn w-button">Buy Tempest</button>}
           </div>
           </>}

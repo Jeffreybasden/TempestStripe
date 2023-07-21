@@ -1,8 +1,8 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { Spin } from "antd";
+import { Spin, Dropdown } from "antd";
 import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { ethers } from "ethers";
 import preTempestAbi from '../abi/preTempestAbi.json'
 const preTempestAddress = '0x5f893d6347b501B0D85f4e95296CF9B9701A93B8'
@@ -19,7 +19,62 @@ const Dashboard = (props) =>{
     const [marketValue, setMarketValue] = useState(0)
     const [currentAPY, setCurrentAPY] = useState('10%')
     const [ExpectedRewards, setExpectedRewards] = useState(0)
-    
+    const [data,setData] = useState()
+    const options = [
+      {
+        key: '3',
+        label: (
+             <div><NavLink to={'/commerce'} style={{textDecoration: 'none'}}>
+              Pay with BTC Eth and more
+             </NavLink>
+             </div> 
+        ),
+      },
+      {
+        key: '4',
+        label: (
+          <div> <NavLink to={'/pay'} style={{textDecoration: 'none'}}>
+          pay with card or wallet
+          </NavLink>
+          </div>
+        ),
+      }
+    ];
+
+
+    async function getTransactions(){
+      let name 
+      let type
+      if(localStorage.getItem('wallet')){
+          name = localStorage.getItem('wallet')
+          type = 'wallet'
+      }else{
+          name = localStorage.getItem('jwt')
+          type = 'jwt'
+      } 
+      
+      try{
+          let res = await fetch('http://localhost:4000/coinbase-user',{
+              method:"POST",
+              body:JSON.stringify({name,type}),
+              headers:{'Content-Type': 'application/json'}
+          })
+          if(res.ok){
+              res = await res.json() 
+              let tempData = res.reduce((acc,curr)=>{
+                if(curr.status.status === 'RESOLVED' || curr.status.status==='COMPLETED'){
+                   acc+=Number(curr.amount.amount)
+                }
+                return acc
+              },0)
+              return tempData
+          }else throw new Error('no info to show')
+      }catch(e){
+          console.log(e)
+          getTransactions()
+      }
+  
+   }
     //get user info if its a wallet
   async function getWalletInfo(){
       try{
@@ -28,16 +83,16 @@ const Dashboard = (props) =>{
           const preTempestContract = new ethers.Contract(preTempestAddress, preTempestAbi,provider)
           let noFormatBalance = await preTempestContract.balanceOf(userAddress)
           noFormatBalance = noFormatBalance.toString()
-          let Balance = Number(ethers.utils.formatUnits(noFormatBalance,18))
+          let Balance = Number(ethers.utils.formatUnits(noFormatBalance,18)) + await getTransactions()
           let Cost = Balance *.15
           let Market = Balance*.15
           let Expected = (Market * 1.1)/12
-          setName(props.account)
           setBalance(Balance)
           setCost(Cost)
           setMarketValue(Market)
           setExpectedRewards(Expected)
           setLoading(false)
+         
         }catch(e){
           console.log(e)
         }
@@ -46,43 +101,45 @@ const Dashboard = (props) =>{
   }
       
       
-    async function getUserInfo(){
+async function getUserInfo(){
       const jwt = localStorage.getItem('jwt')
       //https://tempestapi.onrender.com
-      fetch('https://tempestapi.onrender.com/get-user', {
+  try{
+     let response = await fetch('http://localhost:4000/get-user', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${jwt}`,
           'Content-Type': 'application/json'
         }
       })
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-          getUserInfo()
-          throw new Error('Network response was not ok.');
-        })
-        .then(data => {
-          // Process the response data
-          let Balance = (data.purchase_amount/ 100)/(.15)
-          let Cost = Balance *.15
-          let Market = Balance*.15
-          let Expected = (Market * 1.1)/12
-          setName(data.name)
-          setBalance(Balance)
-          setCost(Cost)
-          setMarketValue(Market)
-          setExpectedRewards(Expected)
-          setLoading(false)
-        })
-        .catch(error => {
-          // Handle the error
+        
+      if(response.ok) {
+         let data = await response.json();
+         // Process the response data
+         let converted = (data.purchase_amount/ 100)/(.15)
+         let Balance = converted + (await getTransactions())
+         let Cost = Balance *.15
+         let Market = Balance*.15
+         let Expected = (Market * 1.1)/12
+         setName(data.name)
+         setBalance(Balance)
+         setCost(Cost)
+         setMarketValue(Market)
+         setExpectedRewards(Expected)
+         setLoading(false)
+         getTransactions()
+      }else{
+        throw new Error('Network response was not ok.');
+        getUserInfo()
+      }
        
-          console.error('Error:', error);
+  }catch(error){
+          // Handle the error
+      getUserInfo()
+      console.error('Error:', error);
           
-        });
-    }
+  }
+}
     
     async function checkLoggedIn(){
       // check if logged in local storage
@@ -96,11 +153,10 @@ const Dashboard = (props) =>{
       }else{
         return navigate('/')
       }
-  
       
     }
 
-    const reconnectWallet =async () =>{
+    const reconnectWallet = async () =>{
       if(localStorage.getItem("wallet")){
         let accounts = await window.ethereum.send("eth_requestAccounts", [])
         setName(accounts[0])
@@ -128,12 +184,16 @@ const Dashboard = (props) =>{
               <div className="h3">TMPST Tokens</div>
             </div>
             </>}
-            <Link to={'/pay'}>
-            <a   className="button-1 _15-margin-top w-inline-block">
+            <Dropdown trigger={["click"]} overlayStyle={{zIndex:"99999"}}
+            menu={{
+            items:options,
+              }}
+            placement="bottom">
+            <a className="button-1 _15-margin-top w-inline-block">
               <div><img src="https://uploads-ssl.webflow.com/6421d264d066fd2b24b91b20/6446ac737eb6c0523ebcdbef_coin-small.png" loading="lazy" alt="" className="coin-button-image"/></div>
               <div>Buy Now</div>
             </a>
-            </Link>
+            </Dropdown>
           </div>
           <div id="w-node-_66da84e9-2422-9fe0-23a9-ae78aee4c7a9-d68700ca" className="box chart-container" hidden={true}></div>
           <div id="w-node-_59f9c4a8-fdb3-f510-a4e3-9e9afd902861-d68700ca" className="box no-bg vertical">
