@@ -163,3 +163,22 @@ exports.Coinbase = async(req,res)=>{
       });
 
 }
+
+exports.AddWallet = async(req,res) =>{
+
+    const token = req.headers.authorization.split(' ')[1]
+    const wallet = req.body.wallet
+
+    try{
+        const {data:[customer]} = await stripe.customers.search({query: `metadata["jwt"]:"${token}"`})
+        const walletAdded = await stripe.customers.update(
+            customer.id, {metadata:{wallet:wallet}}
+        )
+        if(walletAdded){
+            res.status(200).end()
+        }
+    }catch(e){
+        console.log(error)
+    }
+
+}

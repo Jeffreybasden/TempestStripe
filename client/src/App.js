@@ -75,7 +75,9 @@ const App = () => {
       return openNotification('right', <CheckCircleOutlined style={{ color: 'green', }} />, 'Your Purchase and Registration were successful. Welcome to Tempest!', 'Success')
     } else if (page === 'pay') {
       return openNotification('right', <CheckCircleOutlined style={{ color: 'green', }} />, 'Your Purchase was successful.', 'Success')
-    } else {
+    }else if(page === 'add-wallet'){
+      return openNotification('right', <CheckCircleOutlined style={{ color: 'green', }} />, 'Your wallet was added', 'Success')
+    }else {
       return openNotification('right', <CloseOutlined style={{ color: 'red', }} />, "Log out successful", 'Logged out')
     }
 

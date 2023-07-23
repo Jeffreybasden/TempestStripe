@@ -83,7 +83,7 @@ const Coinbase = (props) => {
     
     try{
      
-        let res = await fetch('http://localhost:4000/coinbase-user',{
+        let res = await fetch('https://tempestapi.onrender.com/coinbase-user',{
             method:"POST",
             body:JSON.stringify({name,type}),
             headers:{'Content-Type': 'application/json'}
@@ -141,7 +141,7 @@ const Coinbase = (props) => {
     }
   try{
     setLoading(true)
-   let res = await fetch(`http://localhost:4000/coinbase`,
+   let res = await fetch(`https://tempestapi.onrender.com/coinbase`,
     {
     method:"POST",
     headers,

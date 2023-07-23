@@ -1,12 +1,21 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { Spin, Dropdown } from "antd";
+import { Spin, Dropdown,Row, Input, Button } from "antd";
 import { useNavigate } from "react-router-dom";
 import { NavLink, Link } from "react-router-dom";
 import { ethers } from "ethers";
 import preTempestAbi from '../abi/preTempestAbi.json'
 const preTempestAddress = '0x5f893d6347b501B0D85f4e95296CF9B9701A93B8'
 
+const ShowEmail = () =>{
+  return (
+    <Row>
+      <p>
+      Have any questions or need support? Feel free to reach out to us at Greg@tmpst.io. We're here to help!
+      </p>
+    </Row>
+  )
+}
 
 const Dashboard = (props) =>{
     const navigate = useNavigate()
@@ -20,6 +29,11 @@ const Dashboard = (props) =>{
     const [currentAPY, setCurrentAPY] = useState('10%')
     const [ExpectedRewards, setExpectedRewards] = useState(0)
     const [data,setData] = useState()
+    const [email,setEmail] = useState(false)
+    const [addWallet, setAddWallet] = useState()
+    const [wallet, setWallet] = useState('')
+    const [isWallet, setIsWallet] = useState(false)
+    
     const options = [
       {
         key: '3',
@@ -41,6 +55,29 @@ const Dashboard = (props) =>{
       }
     ];
 
+    async function AddNewWallet(e){
+      console.log(wallet)
+      e.preventDefault()
+      const jwt = localStorage.getItem('jwt')
+      const body = {wallet:wallet}
+      try{
+      let response = await fetch('https://tempestapi.onrender.com/add-wallet', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${jwt}`,
+          'Content-Type': 'application/json'
+        },
+        body:JSON.stringify(body)
+      })
+
+      if(response.ok){
+        props.notification('add-wallet')
+        setAddWallet(false)
+      }
+    }catch(error){
+      console.log(error)
+    }
+  } 
 
     async function getTransactions(){
       let name 
@@ -54,7 +91,7 @@ const Dashboard = (props) =>{
       } 
       
       try{
-          let res = await fetch('http://localhost:4000/coinbase-user',{
+          let res = await fetch('https://tempestapi.onrender.com/coinbase-user',{
               method:"POST",
               body:JSON.stringify({name,type}),
               headers:{'Content-Type': 'application/json'}
@@ -105,7 +142,7 @@ async function getUserInfo(){
       const jwt = localStorage.getItem('jwt')
       //https://tempestapi.onrender.com
   try{
-     let response = await fetch('http://localhost:4000/get-user', {
+     let response = await fetch('https://tempestapi.onrender.com/get-user', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -158,6 +195,7 @@ async function getUserInfo(){
 
     const reconnectWallet = async () =>{
       if(localStorage.getItem("wallet")){
+        setIsWallet(true)
         let accounts = await window.ethereum.send("eth_requestAccounts", [])
         setName(accounts[0])
       }
@@ -200,13 +238,18 @@ async function getUserInfo(){
             <div className="question">
               <div>?</div>
             </div>
+            {email? <ShowEmail/>:<>
             <div className="grey _375-width">If you have any questions, please feel free to reach out to our support team. We’d be happy to assist you!</div>
-            <a href="http://contribute.tmpst.io" target="_blank" className="button-1 _15-margin-top outline grey w-inline-block">
+            <a href="#linkhelp" onClick={(e)=>{
+                e.preventDefault()
+                setEmail(true)
+              }} className="button-1 _15-margin-top outline grey w-inline-block">
               <div className="icon-1 w-embed"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M9 1.125C11.0886 1.125 13.0916 1.95468 14.5685 3.43153C16.0453 4.90838 16.875 6.91142 16.875 9C16.875 11.0886 16.0453 13.0916 14.5685 14.5685C13.0916 16.0453 11.0886 16.875 9 16.875C6.91142 16.875 4.90838 16.0453 3.43153 14.5685C1.95468 13.0916 1.125 11.0886 1.125 9C1.125 6.91142 1.95468 4.90838 3.43153 3.43153C4.90838 1.95468 6.91142 1.125 9 1.125ZM9 18C11.3869 18 13.6761 17.0518 15.364 15.364C17.0518 13.6761 18 11.3869 18 9C18 6.61305 17.0518 4.32387 15.364 2.63604C13.6761 0.948212 11.3869 0 9 0C6.61305 0 4.32387 0.948212 2.63604 2.63604C0.948212 4.32387 0 6.61305 0 9C0 11.3869 0.948212 13.6761 2.63604 15.364C4.32387 17.0518 6.61305 18 9 18ZM7.3125 12.375C7.00313 12.375 6.75 12.6281 6.75 12.9375C6.75 13.2469 7.00313 13.5 7.3125 13.5H10.6875C10.9969 13.5 11.25 13.2469 11.25 12.9375C11.25 12.6281 10.9969 12.375 10.6875 12.375H9.5625V8.4375C9.5625 8.12813 9.30937 7.875 9 7.875H7.59375C7.28438 7.875 7.03125 8.12813 7.03125 8.4375C7.03125 8.74687 7.28438 9 7.59375 9H8.4375V12.375H7.3125ZM9 6.46875C9.22378 6.46875 9.43839 6.37986 9.59662 6.22162C9.75486 6.06339 9.84375 5.84878 9.84375 5.625C9.84375 5.40122 9.75486 5.18661 9.59662 5.02838C9.43839 4.87014 9.22378 4.78125 9 4.78125C8.77622 4.78125 8.56161 4.87014 8.40338 5.02838C8.24514 5.18661 8.15625 5.40122 8.15625 5.625C8.15625 5.84878 8.24514 6.06339 8.40338 6.22162C8.56161 6.37986 8.77622 6.46875 9 6.46875Z" fill="currentColor"></path>
                 </svg></div>
               <div>Get in touch</div>
             </a>
+            </>}
           </div>
         </div>
         
@@ -318,30 +361,43 @@ async function getUserInfo(){
           <div id="w-node-cb747eeb-9ba9-c870-5999-50a9b69c9c3b-d68700ca" className="box left">
             <div className="h3 center">Quick links &amp; resources</div>
             <div className="links-container">
-              <a href="#" className="grey-link w-inline-block">
+              <a href="https://www.beautiful.ai/player/-NTBYK8FgHOj4b6ZUuG3/Tempest-Token-dollarTMPST" target="_blank" className="grey-link w-inline-block">
                 <div>Read the Whitepaper</div>
                 <div className="icon-2 _5-margin-left w-embed"><svg width="18" height="9" viewBox="0 0 18 9" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.3536 4.85355C17.5488 4.65829 17.5488 4.34171 17.3536 4.14645L14.1716 0.964466C13.9763 0.769204 13.6597 0.769204 13.4645 0.964466C13.2692 1.15973 13.2692 1.47631 13.4645 1.67157L16.2929 4.5L13.4645 7.32843C13.2692 7.52369 13.2692 7.84027 13.4645 8.03553C13.6597 8.2308 13.9763 8.2308 14.1716 8.03553L17.3536 4.85355ZM0 5H17V4H0V5Z" fill="black" fillOpacity="0.5"></path>
                   </svg></div>
               </a>
-              <a href="#" className="grey-link w-inline-block">
+              <a href="https://discord.gg/htMMbKVaqz" target="_blank" className="grey-link w-inline-block">
                 <div>Join our community in Discord</div>
                 <div className="icon-2 _5-margin-left w-embed"><svg width="18" height="9" viewBox="0 0 18 9" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.3536 4.85355C17.5488 4.65829 17.5488 4.34171 17.3536 4.14645L14.1716 0.964466C13.9763 0.769204 13.6597 0.769204 13.4645 0.964466C13.2692 1.15973 13.2692 1.47631 13.4645 1.67157L16.2929 4.5L13.4645 7.32843C13.2692 7.52369 13.2692 7.84027 13.4645 8.03553C13.6597 8.2308 13.9763 8.2308 14.1716 8.03553L17.3536 4.85355ZM0 5H17V4H0V5Z" fill="black" fillOpacity="0.5"></path>
                   </svg></div>
               </a>
-              <a href="#" className="grey-link w-inline-block">
-                <div>Contact our support team</div>
+              <div onClick={(e)=>{
+                e.preventDefault()
+                setEmail(true)
+              }} className="grey-link w-inline-block">
+                {email ? <ShowEmail className={'linkhelp'}/>:<>
+               <div>Contact our support team</div>
                 <div className="icon-2 _5-margin-left w-embed"><svg width="18" height="9" viewBox="0 0 18 9" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.3536 4.85355C17.5488 4.65829 17.5488 4.34171 17.3536 4.14645L14.1716 0.964466C13.9763 0.769204 13.6597 0.769204 13.4645 0.964466C13.2692 1.15973 13.2692 1.47631 13.4645 1.67157L16.2929 4.5L13.4645 7.32843C13.2692 7.52369 13.2692 7.84027 13.4645 8.03553C13.6597 8.2308 13.9763 8.2308 14.1716 8.03553L17.3536 4.85355ZM0 5H17V4H0V5Z" fill="black" fillOpacity="0.5"></path>
                   </svg></div>
-              </a>
-              <a href="#" className="grey-link w-inline-block">
+                  </>}
+              </div>
+
+              {isWallet? <></> : <a href="#"  onClick={(e)=>{
+                e.preventDefault()
+                setAddWallet(true)
+              }} className="grey-link w-inline-block">
                 <div>Add a new wallet</div>
-                <div className="icon-2 _5-margin-left w-embed"><svg width="18" height="9" viewBox="0 0 18 9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {addWallet ? 
+                <Row>
+                  <Input onChange={(e)=> setWallet(e.target.value)} placeholder="Eth wallet address"/>
+                  <Button style={{margin:"10px"}} type="primary" onClick={(e)=>AddNewWallet(e)}>Add Wallet</Button>
+                </Row>:<div className="icon-2 _5-margin-left w-embed"><svg width="18" height="9" viewBox="0 0 18 9" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.3536 4.85355C17.5488 4.65829 17.5488 4.34171 17.3536 4.14645L14.1716 0.964466C13.9763 0.769204 13.6597 0.769204 13.4645 0.964466C13.2692 1.15973 13.2692 1.47631 13.4645 1.67157L16.2929 4.5L13.4645 7.32843C13.2692 7.52369 13.2692 7.84027 13.4645 8.03553C13.6597 8.2308 13.9763 8.2308 14.1716 8.03553L17.3536 4.85355ZM0 5H17V4H0V5Z" fill="black" fillOpacity="0.5"></path>
-                  </svg></div>
-              </a>
+                  </svg></div>}
+              </a>}
             </div>
           </div>
           <div id="w-node-f6edf471-c63f-fa70-1e81-3f2cea84095c-d68700ca" className="box vert-center">

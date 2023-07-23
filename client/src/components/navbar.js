@@ -7,6 +7,7 @@ import { NavLink, Link } from "react-router-dom";
 
 const NavBar = (props) =>{
   const navigate = useNavigate()
+  const [schedule,setSchedule] = useState(false)
   const useScrollOpacity = () => {
     const [opacity, setOpacity] = useState(0);
     useEffect(() => {
@@ -85,7 +86,7 @@ const NavBar = (props) =>{
 
     if(localStorage.getItem("jwt")){
       const jwt = localStorage.getItem("jwt")
-      let res = await fetch('http://localhost:4000/logout', {
+      let res = await fetch('https://tempestapi.onrender.com/logout', {
         method: 'POST',
             headers: {
               'Authorization': `Bearer ${jwt}`,
@@ -94,10 +95,10 @@ const NavBar = (props) =>{
           })
     
           if(res.ok){
+            props.notification("logout")
             localStorage.removeItem('loggedIn')
             localStorage.removeItem('jwt')
             localStorage.removeItem('name')
-            props.notification("logout")
             props.setLoggedIn(false)
             navigate('/')
           }
@@ -105,6 +106,7 @@ const NavBar = (props) =>{
     localStorage.removeItem('loggedIn')
     localStorage.removeItem('wallet')
     props.setLoggedIn(false)
+    props.notification("logout")
     navigate('/')
   }
 
@@ -134,18 +136,25 @@ return(
                 <a  aria-current="page" className="nav-link w-inline-block w--current">
                   <div className="nav-text-1">Staking</div>
                   <div className="nav-text-2">Staking</div>
+                  <p style={{fontSize:'10px'}}>Coming Soon</p>
                 </a>
                 </NavLink>
                 <NavLink to={'/bonding'}>
                 <a  className="nav-link w-inline-block">
                   <div className="nav-text-1">Bonding</div>
                   <div className="nav-text-2">Bonding</div>
+                  <p style={{fontSize:'10px'}} >Coming Soon</p>
                 </a>
                 </NavLink>
-                <NavLink to={'/call'}>
-                <a  className="nav-link w-inline-block">
+                <NavLink onClick={(e)=>{
+                  e.preventDefault()
+                  setSchedule(!schedule)
+                }} to={'/call'}>
+                <a className="nav-link w-inline-block">
+                 {schedule? <p>Contact Greg@tmpst.io </p> :<>
                   <div className="nav-text-1">Schedule a call</div>
                   <div className="nav-text-2">Schedule a call</div>
+                  </>}
                 </a>
                 </NavLink>
                 <NavLink to={localStorage.getItem('loggedIn')===null? '/register-pay':'/pay'}>
