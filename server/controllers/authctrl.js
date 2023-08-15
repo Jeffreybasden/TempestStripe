@@ -52,7 +52,7 @@ exports.GetUser = async(req,res) =>{
         }
         const charges =  await stripe.charges.list({ customer: customer.id})
         const sessions = await stripe.checkout.sessions.list({})
-        const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' && customer.email === check.customer_details.email)[0].amount_total
+        const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' && customer.email === check.customer_details.email)[0].amount_total || 0
         console.log(paidSesh)
         if(charges.data[0] === undefined){
             console.log('no charges')
