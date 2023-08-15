@@ -51,6 +51,9 @@ exports.GetUser = async(req,res) =>{
            return res.status(400).end("no customer found")
         }
         const charges =  await stripe.charges.list({ customer: customer.id})
+        const sessions = await stripe.checkout.sessions.list({})
+        const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' && customer.email === check.customer_details.email)[0].amount_total
+        console.log(paidSesh)
         if(charges.data[0] === undefined){
             console.log('no charges')
             return res.status(200).json({name:customer.name, purchase_amount:0})
@@ -62,7 +65,7 @@ exports.GetUser = async(req,res) =>{
             // console.log('acc ',acc.amount_captured)
             return acc + curr.amount_captured
         },0)
-        return res.status(200).json({name:customer.name, purchase_amount:balance, date:firstPurchase.created})
+        return res.status(200).json({name:customer.name, purchase_amount:balance+paidSesh, date:firstPurchase.created})
     }catch(e){
         if(e){
             console.log(e)

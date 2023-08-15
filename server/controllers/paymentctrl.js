@@ -81,8 +81,10 @@ exports.payment = async(req,res)=>{
                     receipt_email:token.email,
                 })
                 if(paymentIntent.status === "succeeded" ){
-                    res.status(200).end()
                     console.log('congrats on our purchase')
+                    return res.status(200).end()
+                }else if(paymentIntent.status === "requires_action"){
+                    return res.json(payment.Intent.client_secret)
                 }
         }
     }catch(e){
@@ -139,3 +141,5 @@ exports.CoinbasePay = async(req,res) => {
     
 
 }
+
+
