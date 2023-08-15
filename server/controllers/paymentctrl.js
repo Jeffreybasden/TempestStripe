@@ -63,30 +63,28 @@ Client.init(process.env.E_TEMPEST);
 // }
 
 exports.payment = async(req,res)=>{
-    let {token, amount} = req.body
+    let  {amount} = req.body
     //numbers in stripe must be multiplied by 100 because they are token in cents not dollars 
     amount = amount*100
     const jwt = req.headers.authorization.split(' ')[1]
     try{
         //find customer if they already exist 
         const {data:[customer]}  = await stripe.customers.search({query: `metadata["jwt"]:"${jwt}"`})
-        let sourceAdded = await stripe.customers.update(customer.id,{source:token.id})
         setTimeout(()=>{},5000)
-        if(sourceAdded){
                 const paymentIntent =  await stripe.paymentIntents.create({
                     customer:customer.id,
                     amount:amount,
                     currency:'USD',
-                    confirm:true,
-                    receipt_email:token.email,
+                    automatic_payment_methods: {
+                        enabled: true,
+                      },
+                    receipt_email:customer.email,
                 })
-                if(paymentIntent.status === "succeeded" ){
-                    console.log('congrats on our purchase')
-                    return res.status(200).end()
-                }else if(paymentIntent.status === "requires_action"){
-                    return res.json(payment.Intent.client_secret)
+              
+                if(paymentIntent){
+                    return res.json({client_secret:paymentIntent.client_secret})
                 }
-        }
+                       
     }catch(e){
         if(e){
             res.status(400)

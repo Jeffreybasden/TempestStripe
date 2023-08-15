@@ -9,7 +9,7 @@ const NavBar = (props) =>{
   const navigate = useNavigate()
   const [schedule,setSchedule] = useState(false)
   const useScrollOpacity = () => {
-    const [opacity, setOpacity] = useState(0);
+  const [opacity, setOpacity] = useState(0);
     useEffect(() => {
       const handleScroll = () => {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -86,7 +86,7 @@ const NavBar = (props) =>{
 
     if(localStorage.getItem("jwt")){
       const jwt = localStorage.getItem("jwt")
-      let res = await fetch('https://tempestapi.onrender.com/logout', {
+      let res = await fetch('http://localhost:4000/logout', {
         method: 'POST',
             headers: {
               'Authorization': `Bearer ${jwt}`,

@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { ethers } from "ethers";
 import presaleContractAbi from '../abi/presaleContractAbi.json'
 import usdcAbi from '../abi/usdcAbi.json'
+import Element from "./stripe3d/element";
 
 
 const Pay = (props) => {
@@ -33,8 +34,8 @@ const Pay = (props) => {
     }
   }
 
-    const usdcContract = new ethers.Contract('0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',usdcAbi,provider?.getSigner())
-    const presaleContract = new ethers.Contract('0x7e9d22f5EBF3f4808A259E9F864a7d24f6E79461',presaleContractAbi,provider?.getSigner())
+  const usdcContract = new ethers.Contract('0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',usdcAbi,provider?.getSigner())
+  const presaleContract = new ethers.Contract('0x7e9d22f5EBF3f4808A259E9F864a7d24f6E79461',presaleContractAbi,provider?.getSigner())
    
 
   const openNotification = (placement, icon, message, title ) => {
@@ -63,7 +64,7 @@ const Pay = (props) => {
     }
   try{
     setLoading(true)
-   let res = await fetch(`https://tempestapi.onrender.com/payment`,
+   let res = await fetch(`https://localhost:4000/payment`,
     {
     method:"POST",
     headers,
@@ -149,20 +150,21 @@ const Pay = (props) => {
             <div className="h3">{display}</div>
             <div className="h3">TMPST Tokens</div>
           </div>
-          <div className="_350-width grey">It is currently presale making the price of each tempest token $0.15. When presale ends the price for a Tempest token will be $0.25. </div>
+          <div className="_350-width grey">Each Tempest token will be $0.25. </div>
           {loading ? <Spin><div className="content" style={{margin:"80px"}} /></Spin> : <>
           <div className="form-block w-form">
-            <h4>Dollar amount </h4>
-            <input style={{marginTop:40}} type="number" onChange={(e)=>getAmount(e)} className="form-input w-input" maxLength="256" name="email" data-name="Email" id="email" required=""/>
-            {!wallet?
-            <StripeCheckout
-            name=''
-            stripeKey={process.env.REACT_APP_OPEN_KEY}
-            token={makePayment}
-            amount={amount *100}
-            billingAddress
-            ><button type="primary" data-wait="Please wait..." className="form-btn w-button">Buy Tempest</button> 
-            </StripeCheckout> :
+            <h4>Dollar amount</h4>
+            <input style={{marginTop:20}} type="number" placeholder="$USD" onChange={(e) => getAmount(e)} className="form-input w-input" maxLength="256" name="email" data-name="Email" id="email" required=""/>
+            {!wallet? <Element openNotif={openNotification} setLoad={setLoading} notification={props.notification} amount={amount} ></Element>
+            // <StripeCheckout
+            // name=''
+            // stripeKey={process.env.REACT_APP_OPEN_KEY}
+            // token={makePayment}
+            // amount={amount *100}
+            // billingAddress
+            // ><button type="primary" data-wait="Please wait..." className="form-btn w-button">Buy Tempest</button> 
+            // </StripeCheckout> 
+            :
             <button type="primary" onClick={payWithWallet} data-wait="Please wait..." className="form-btn w-button">Buy Tempest</button>}
           </div>
           </>}

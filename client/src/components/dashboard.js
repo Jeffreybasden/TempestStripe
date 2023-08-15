@@ -61,7 +61,8 @@ const Dashboard = (props) =>{
       const jwt = localStorage.getItem('jwt')
       const body = {wallet:wallet}
       try{
-      let response = await fetch('https://tempestapi.onrender.com/add-wallet', {
+        //tempestapi.onrender.com
+      let response = await fetch('http://localhost:4000/add-wallet', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -91,7 +92,7 @@ const Dashboard = (props) =>{
       } 
       
       try{
-          let res = await fetch('https://tempestapi.onrender.com/coinbase-user',{
+          let res = await fetch('http://localhost:4000/coinbase-user',{
               method:"POST",
               body:JSON.stringify({name,type}),
               headers:{'Content-Type': 'application/json'}
@@ -104,6 +105,7 @@ const Dashboard = (props) =>{
                 }
                 return acc
               },0)
+              tempData = tempData/.15
               return tempData
           }else throw new Error('no info to show')
       }catch(e){
@@ -142,7 +144,7 @@ async function getUserInfo(){
       const jwt = localStorage.getItem('jwt')
       //https://tempestapi.onrender.com
   try{
-     let response = await fetch('https://tempestapi.onrender.com/get-user', {
+     let response = await fetch('http://localhost:4000/get-user', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${jwt}`,
