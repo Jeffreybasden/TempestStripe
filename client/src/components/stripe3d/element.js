@@ -6,8 +6,7 @@ import CheckoutForm from "./confirmcheckout";
 const Element = (props)=>{
 
     const stripePromise = loadStripe(
-    
-        'pk_test_51KpHHTCC8GcOFmSshxZwhymXosJcSKSYFD7eXMeEcAXPnYveYgwph6Qay7zTm8O7DRX7fmYZjVQcdCu6UyNqoGof00yoXVmlYV'
+        process.env.REACT_APP_OPEN_KEY
         );
 
           const options = {

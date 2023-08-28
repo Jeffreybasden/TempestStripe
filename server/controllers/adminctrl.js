@@ -108,30 +108,46 @@ const coinbaseSearch = async(name, time) =>{
 
 const stripeSearch = async(name,time)=>{
     let final = []
-    let {data} = await stripe.charges.list({})
-    data = data.filter(charge=> charge.status === 'succeeded')
-    let checkList = await stripe.checkout.sessions.list({})
+    let {data} = await stripe.charges.list({status:'succeeded',limit:1000})
+    console.log('before the filter',data.length)
+    // data = data.filter(charge=> charge.status === 'succeeded')
+    console.log('after the filter',data.length)
+    let checkList = await stripe.checkout.sessions.list({limit:1000})
+    console.log('check before the filter',checkList.data.length)
     let  data2 = checkList.data.filter(check=>check.payment_status === 'paid')
+    console.log('check before the filter',data2.length)
+
     data2 = data2.map(charge=>{
-        charge.receipt_email = charge.customer_details.email
+
+        if(charge.customer_details.email){
+            charge.receipt_email = charge.customer_details.email
+            console.log('first one',charge.receipt_email)
+        }else if(charge.customer){
+            charge.receipt_email = charge.customer.email
+            console.log('second one',charge.receipt_email)
+        }
         charge.amount = charge.amount_total
         return charge 
     }) 
     data = data2.concat(data)
+    console.log('data concatenated',data.length)
     if(name && time){
+        console.log('name and time are showing up')
         final = data.filter(charge=>{
-         switch(time){
-             case 'week':
-                 return name === charge.receipt_email && isDateInPastWeek(charge.created*1000)
-             case 'month': 
-                 return name === charge.receipt_email && isDateInPastMonth(charge.created*1000) 
-             case 'day': 
-                 return name === charge.receipt_email && isDateInPastDay(charge.created*1000) 
-         }
-     })     
-     }else if (name && !time){
+            switch(time){
+                case 'week':
+                    return name === charge.receipt_email && isDateInPastWeek(charge.created*1000)
+                    case 'month': 
+                    return name === charge.receipt_email && isDateInPastMonth(charge.created*1000) 
+                    case 'day': 
+                    return name === charge.receipt_email && isDateInPastDay(charge.created*1000) 
+                }
+            })     
+        }else if (name && !time){
+         console.log('just name  showing up')
          final = data.filter(charge => charge.receipt_email === name)
-     }else if(time && !name){
+        }else if(time && !name){
+         console.log('just time showing up')
          final = data.filter(charge=>{
              switch(time){
                  case 'week':
@@ -143,6 +159,7 @@ const stripeSearch = async(name,time)=>{
              } 
          })  
      }else{
+        console.log('nothing showed up')
          final = data
      }
 
@@ -163,7 +180,7 @@ try {
     let stripeFiltered = await stripeSearch(user,time)
     let walletFiltered
     let fullTransaction = coinbaseFiltered.concat(stripeFiltered)
-    fullTransaction = fullTransaction.sort((a,b) => a.time.split('/')[2] - b.time.split('/')[2] && a.time.split('/')[0] - b.time.split('/')[0])
+    
     res.json(fullTransaction)
     
 } catch (error) {
@@ -176,15 +193,15 @@ try {
 
 exports.getTotal = async(req,res) =>{
 
-    let {data} = await stripe.charges.list({})
+    let {data} = await stripe.charges.list({limit:1000})
     data = data.map(charge=> charge.amount / 100).reduce((acc,curr)=> acc+=curr,0)
-    const sessions = await stripe.checkout.sessions.list({})
+    const sessions = await stripe.checkout.sessions.list({limit:1000})
     const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' ).reduce((acc,curr)=> acc+=curr.amount_total/100,0)
 
     let coin = await charge.all({}) //get all charges
     const total = coin.filter(charge => charge.confirmed_at).map(charge=> Number(charge.pricing.local.amount)).reduce((acc,curr)=> acc+=curr,0) + data// filter charges that were completed
     console.log('TOTALALALAL',total)
-    console.log(paid)
+    console.log(paidSesh,total)
     res.json({total:total+paidSesh}) 
 }
 

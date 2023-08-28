@@ -1,6 +1,5 @@
 
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import RegisterPay from './components/registerpay'
 import NavBar from './components/navbar';
 import LandingPage from './components/landingpage';
 import Dashboard from './components/dashboard';
@@ -115,7 +114,6 @@ const App = () => {
             <Route path='/dashboard' element={<Dashboard account={account} provider={Provider} notification={successfulAction} />} />
             <Route path='/register'  element={<Register setLoggedIn={setLoggedIn} notification={successfulAction} />} />
             <Route path='/login'  element={<Login setLoggedIn={setLoggedIn} notification={successfulAction} />} />
-            <Route path='/register-pay'  element={<RegisterPay setLoggedIn={setLoggedIn} notification={successfulAction} />} />
             <Route path='/pay' element={<Pay provider={Provider} notification={successfulAction} />} />
             <Route path='/commerce' element={<Coinbase provider={Provider} notification={successfulAction} />} />
             <Route path='*' element={<Dashboard notification={successfulAction} />} />

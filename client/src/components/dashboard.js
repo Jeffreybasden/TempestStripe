@@ -62,7 +62,7 @@ const Dashboard = (props) =>{
       const body = {wallet:wallet}
       try{
         //tempestapi.onrender.com
-      let response = await fetch('http://localhost:4000/add-wallet', {
+      let response = await fetch('https://tempestapi.onrender.com/add-wallet', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -92,7 +92,7 @@ const Dashboard = (props) =>{
       } 
       
       try{
-          let res = await fetch('http://localhost:4000/coinbase-user',{
+          let res = await fetch('https://tempestapi.onrender.com/coinbase-user',{
               method:"POST",
               body:JSON.stringify({name,type}),
               headers:{'Content-Type': 'application/json'}
@@ -144,7 +144,7 @@ async function getUserInfo(){
       const jwt = localStorage.getItem('jwt')
       //https://tempestapi.onrender.com
   try{
-     let response = await fetch('http://localhost:4000/get-user', {
+     let response = await fetch('https://tempestapi.onrender.com/get-user', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -155,10 +155,10 @@ async function getUserInfo(){
       if(response.ok) {
          let data = await response.json();
          // Process the response data
-         let converted = (data.purchase_amount/ 100)/(.15)
+         let converted = (data.purchase_amount/ 100)/(.25)
          let Balance = converted + (await getTransactions())
-         let Cost = Balance *.15
-         let Market = Balance*.15
+         let Cost = Balance *.25
+         let Market = Balance*.25
          let Expected = (Market * 1.1)/12
          setName(data.name)
          setBalance(Balance)

@@ -50,41 +50,12 @@ const Pay = (props) => {
   };
 
     const getAmount = (e) =>{
-    let total = (e.target.value/0.15).toFixed(2)
+    let total = (e.target.value/0.25).toFixed(2)
     setUsd(e.target.value)
     setDisplay(total)
     setAmount(e.target.value)
     }
-    const makePayment = async token =>{
-    const jwt = localStorage.getItem('jwt')  
-    const body = {token, amount:amount}
-    const headers = {
-    'Authorization': `Bearer ${jwt}`,
-    "Content-Type":"application/json"
-    }
-  try{
-    setLoading(true)
-   let res = await fetch(`https://localhost:4000/payment`,
-    {
-    method:"POST",
-    headers,
-    body:JSON.stringify(body)
-    })
-
-    if(res.ok){
-      props.notification("pay")
-      return navigate('/dashboard')
-    }else{
-      setLoading(false)
-      let data = await res.json()
-      return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,data.error, 'Try Again')
-    } 
-  }catch(e){
-      console.log(e.message)
-  }
-
-
-  }
+   
 
   async function payWithWallet (){
     const amountDecimals = ethers.utils.parseUnits(amount.toString(),6)
@@ -156,14 +127,6 @@ const Pay = (props) => {
             <h4>Dollar amount</h4>
             <input style={{marginTop:20}} type="number" placeholder="$USD" onChange={(e) => getAmount(e)} className="form-input w-input" maxLength="256" name="email" data-name="Email" id="email" required=""/>
             {!wallet? <Element openNotif={openNotification} setLoad={setLoading} notification={props.notification} amount={amount} ></Element>
-            // <StripeCheckout
-            // name=''
-            // stripeKey={process.env.REACT_APP_OPEN_KEY}
-            // token={makePayment}
-            // amount={amount *100}
-            // billingAddress
-            // ><button type="primary" data-wait="Please wait..." className="form-btn w-button">Buy Tempest</button> 
-            // </StripeCheckout> 
             :
             <button type="primary" onClick={payWithWallet} data-wait="Please wait..." className="form-btn w-button">Buy Tempest</button>}
           </div>

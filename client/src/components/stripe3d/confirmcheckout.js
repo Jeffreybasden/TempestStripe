@@ -29,7 +29,7 @@ const CheckoutForm = (props) => {
     "Content-Type":"application/json"
     }
     
-   let res = await fetch(`http://localhost:4000/payment`,
+   let res = await fetch(`https://tempestapi.onrender.com/payment`,
     {
     method:"POST",
     headers,
@@ -38,7 +38,7 @@ const CheckoutForm = (props) => {
 
      if(res.ok){
         const data = await res.json()
-        console.log(data)
+        
         const result = await stripe.confirmPayment({
             //`Elements` instance that was used to create the Payment Element
             elements,

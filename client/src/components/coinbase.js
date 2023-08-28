@@ -236,7 +236,7 @@ e.preventDefault()
             <div className="h3">{display}</div>
             <div className="h3">TMPST Tokens</div>
           </div>
-          <div className="_350-width grey">It is currently presale making the price of each tempest token $0.15. When presale ends the price for a Tempest token will be $0.25. </div>
+          <div className="_350-width grey">Each Tempest token will be $0.25.</div>
           {loading ? <Spin><div className="content" style={{margin:"80px"}} /></Spin> : <>
           <div className="form-block w-form">
             <h4>Dollar amount </h4>
