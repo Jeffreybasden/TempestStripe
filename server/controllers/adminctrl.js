@@ -109,6 +109,15 @@ const coinbaseSearch = async(name, time) =>{
 const stripeSearch = async(name,time)=>{
     let final = []
     let {data} = await stripe.charges.list({})
+    data = data.filter(charge=> charge.status === 'succeeded')
+    let checkList = await stripe.checkout.sessions.list({})
+    let  data2 = checkList.data.filter(check=>check.payment_status === 'paid')
+    data2 = data2.map(charge=>{
+        charge.receipt_email = charge.customer_details.email
+        charge.amount = charge.amount_total
+        return charge 
+    }) 
+    data = data2.concat(data)
     if(name && time){
         final = data.filter(charge=>{
          switch(time){
@@ -132,7 +141,7 @@ const stripeSearch = async(name,time)=>{
                  case 'day': 
                      return isDateInPastDay(charge.created * 1000) 
              } 
-         }) 
+         })  
      }else{
          final = data
      }
@@ -169,11 +178,12 @@ exports.getTotal = async(req,res) =>{
 
     let {data} = await stripe.charges.list({})
     data = data.map(charge=> charge.amount / 100).reduce((acc,curr)=> acc+=curr,0)
-    
+    const sessions = await stripe.checkout.sessions.list({})
+    const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' ).reduce((acc,curr)=> acc+=curr.amount_total,0)
     let coin = await charge.all({}) //get all charges
     const total = coin.filter(charge => charge.confirmed_at).map(charge=> Number(charge.pricing.local.amount)).reduce((acc,curr)=> acc+=curr,0) + data// filter charges that were completed
     console.log('TOTALALALAL',total)
-    res.json({total}) 
+    res.json({total:total+paidSesh}) 
 }
 
 exports.login = async(req,res)=>{
