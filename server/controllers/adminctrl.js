@@ -179,10 +179,12 @@ exports.getTotal = async(req,res) =>{
     let {data} = await stripe.charges.list({})
     data = data.map(charge=> charge.amount / 100).reduce((acc,curr)=> acc+=curr,0)
     const sessions = await stripe.checkout.sessions.list({})
-    const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' ).reduce((acc,curr)=> acc+=curr.amount_total,0)
+    const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' ).reduce((acc,curr)=> acc+=curr.amount_total/100,0)
+
     let coin = await charge.all({}) //get all charges
     const total = coin.filter(charge => charge.confirmed_at).map(charge=> Number(charge.pricing.local.amount)).reduce((acc,curr)=> acc+=curr,0) + data// filter charges that were completed
     console.log('TOTALALALAL',total)
+    console.log(paid)
     res.json({total:total+paidSesh}) 
 }
 
