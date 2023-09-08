@@ -1,14 +1,15 @@
-const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 const JWT = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const adminUser = require('../models/adminUser')
 var coinbase = require('coinbase-commerce-node');
+const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 
 var Client = coinbase.Client;
 var charge = coinbase.resources.Charge
 Client.init(process.env.E_TEMPEST);
 const secret = 'theValueIsInYouNotWithout'
 
+// helper functions 
 function isDateInPastWeek(dateToCheck) {
     const checkDate = new Date(dateToCheck)
     const currentDate = new Date();
@@ -53,6 +54,8 @@ function convertDateFormat(inputDate) {
     const formattedDate = `${month}/${day}/${year}`;
     return formattedDate;
 }
+
+//search functions 
 const coinbaseSearch = async(name, time) =>{
         
     let final = []

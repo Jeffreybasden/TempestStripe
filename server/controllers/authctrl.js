@@ -1,5 +1,6 @@
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 const bcrypt = require('bcrypt')
+const User = require('../models/users')
 const Jwt = require('jsonwebtoken')
 const secret = 'theValueIsInYouNotWithout'
 var coinbase = require('coinbase-commerce-node');
@@ -12,20 +13,19 @@ Client.init(process.env.E_TEMPEST);
 exports.Login = async (req,res) =>{
     const {email, password} = req.body
     try{
-        const {data:[customer]} = await stripe.customers.search({query: `email:"${email}"`})
+        const customer = await User.findOne({email:email})
         if(customer === undefined){
             console.log("email wrong")
             return res.status(400).json({message:'Email or password is incorrect'}) 
         }
-        if(!await bcrypt.compare(password,customer.metadata.password)){
+        if(!await bcrypt.compare(password,customer.password)){
             console.log("password wrong")
             return res.status(400).json({message:'Email or password is incorrect'})
         }else{
             const token = Jwt.sign(email,secret)
-            let updatedCustomer = await stripe.customers.update(
-                customer.id,
-                {metadata:{jwt:token}}
-                )
+            customer.jwt = token
+            let updatedCustomer = await customer.save()
+                
                 if(updatedCustomer){
                     return res.status(200).json({jwt:token,name:customer.name, message:"login was successful"})
                 }
@@ -43,29 +43,15 @@ exports.GetUser = async(req,res) =>{
    
     try{
         
-        const retrieved = await stripe.customers.search({query: `metadata["jwt"]:"${token}"`})
+        const customer = await User.findOne({jwt:token})
         
-        let customer = retrieved.data[0]
+       
         if(customer === undefined){
             console.log('search got nothing')
            return res.status(400).end("no customer found")
         }
-        const charges =  await stripe.charges.list({ customer: customer.id})
-        const sessions = await stripe.checkout.sessions.list({})
-        const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' && customer.email === check.customer_details.email)[0]?.amount_total || 0
-        console.log(paidSesh)
-        if(charges.data[0] === undefined){
-            console.log('no charges')
-            return res.status(200).json({name:customer.name, purchase_amount:0})
-        }
-       
-        let balance =  charges.data
-        let firstPurchase = balance[balance.length-1]
-        balance = balance.reduce((acc,curr)=>{
-            // console.log('acc ',acc.amount_captured)
-            return acc + curr.amount_captured
-        },0)
-        return res.status(200).json({name:customer.name, purchase_amount:balance+paidSesh, date:firstPurchase.created})
+         
+        return res.status(200).json({name:customer.name, purchase_amount:customer.total,})
     }catch(e){
         if(e){
             console.log(e)
@@ -79,7 +65,7 @@ exports.GetUser = async(req,res) =>{
 }
 
 exports.Register = async(req,res)=>{
-   let {name, email, password}= req.body 
+   let {name, email, password} = req.body 
    const token =  Jwt.sign(email,secret)
    password = await bcrypt.hash(password,12)
 
