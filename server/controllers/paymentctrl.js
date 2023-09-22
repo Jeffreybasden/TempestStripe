@@ -1,6 +1,8 @@
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 const bcrypt = require('bcrypt')
 const JWT = require('jsonwebtoken')
+const Users = require('../models/users')
+const transactions = require('../models/transactions')
 const secret = 'theValueIsInYouNotWithout'
 var coinbase = require('coinbase-commerce-node');
 var Client = coinbase.Client;
@@ -63,14 +65,17 @@ Client.init(process.env.E_TEMPEST);
 // }
 
 exports.payment = async(req,res)=>{
-    let  {amount} = req.body
+    let  {amount, employeeId} = req.body
     //numbers in stripe must be multiplied by 100 because they are token in cents not dollars 
     amount = amount*100
     const jwt = req.headers.authorization.split(' ')[1]
     try{
+        let user = await Users.findOne({jwt:jwt})
         //find customer if they already exist 
-        const {data:[customer]}  = await stripe.customers.search({query: `metadata["jwt"]:"${jwt}"`})
-        setTimeout(()=>{},5000)
+                const { data: [customer] } = await stripe.customers.list({
+                    email: user.email,
+                    limit: 1, // Limit the result to one customer, assuming you want only one matching customer
+                })
                 const paymentIntent =  await stripe.paymentIntents.create({
                     customer:customer.id,
                     amount:amount,
@@ -82,13 +87,28 @@ exports.payment = async(req,res)=>{
                 })
               
                 if(paymentIntent){
-                    return res.json({client_secret:paymentIntent.client_secret})
+                    let transaction
+                    console.log('payment intent made')
+                    user.paymentIntent = paymentIntent.id
+                    await user.save()
+                    
+                    if(employeeId == "undefined"){
+                        console.log('not undefined')
+                        transaction = new transactions({sourceId:paymentIntent.id, employee:employeeId, source:'stripe'})
+                    }else{
+                        console.log('undefined')
+                        transaction = new transactions({sourceId:paymentIntent.id, source:'stripe'})
+                    } 
+                    await transaction.save()
+                    console.log(user.paymentIntent)
+                    return res.json({client_secret:paymentIntent.client_secret})  
                 }
                        
     }catch(e){
         if(e){
             res.status(400)
             res.json({error:e.message})
+            console.log(e)
         
         }
     }
@@ -99,11 +119,11 @@ exports.CoinbasePay = async(req,res) => {
     let name 
     let amount = req.body.amount
     let type = req.body.type
-    
+    let customer
     if(type === 'jwt'){
         // the loop is here because the stripe api is slow to update since it is all saved in stripe. So we call it until we get a the proper data
             try{
-                const {data:[customer]} = await stripe.customers.search({query: `metadata["jwt"]:"${req.body.name}"`})
+                customer = await Users.findOne({jwt:req.body.name})
                 if(customer){
                     name = customer.email
                 }else throw new Error('jwt did not update yet retrying')
@@ -127,12 +147,13 @@ exports.CoinbasePay = async(req,res) => {
         'pricing_type': 'fixed_price'
     
     }
-    charge.create(chargeData, function (error, response) {
+    charge.create(chargeData, async function (error, response) {
     if(error){
         console.log(error);
     }else{
+        customer.coinbaseID = response.id
+        await customer.save()
         return res.json({url:response.hosted_url});
-
     }
     });
 

@@ -28,8 +28,9 @@ router.post('/login',auth.Login)
 router.get('/get-user',auth.GetUser)
 router.post('/register',auth.Register)
 router.post('/logout',auth.LogOut)
-router.post('/coinbase-user',auth.Coinbase)
+// router.post('/coinbase-user',auth.Coinbase)
 router.post('/add-wallet',auth.AddWallet)
+router.post('/change-password',auth.changePassword)
 
 
 

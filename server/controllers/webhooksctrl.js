@@ -1,52 +1,69 @@
 var coinbase = require('coinbase-commerce-node');
+const express = require('express')
 var Client = coinbase.Client;
 var Charge = coinbase.resources.Charge;
 Client.init(process.env.E_TEMPEST);
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 const Users = require('../models/users')
-let endpointSecret = 
+const transactions = require("../models/transactions")
+const employees = require('../models/employee'); 
+const Teams = require('../models/teams'); 
+const { payment } = require('./paymentctrl');
+let endpointSecret = 'whsec_d29d5d8d61c65e34a8422839193bcd48e58cc6afea19e75e1a8323d199922ce1'
 
-exports.coinbaseWebhook = (req,res) =>{
+
+
+
+exports.coinbaseWebhook = async(req,res) =>{
 
 }
-exports.stripeWebhook = (request,response) =>{
-    let event = request.body;
-    // Only verify the event if you have an endpoint secret defined.
-    // Otherwise use the basic event deserialized with JSON.parse
-    if (endpointSecret) {
-      // Get the signature sent by Stripe
-      const signature = request.headers['stripe-signature'];
-      try {
-        event = stripe.webhooks.constructEvent(
-          request.body,
-          signature,
-          endpointSecret
-        );
-      } catch (err) {
-        console.log(` Webhook signature verification failed.`, err.message);
-        return response.sendStatus(400);
-      }
-    }
+
+
+
+
+exports.stripeWebhook = async (request,response) =>{
   
-    // Handle the event
+    const event = request.body;
+  
+  
     switch (event.type) {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object;
-        console.log(`PaymentIntent for ${paymentIntent.amount} was successful!`);
-        // Then define and call a method to handle the successful payment intent.
-        // handlePaymentIntentSucceeded(paymentIntent);
+        let user = await Users.findOne({paymentIntent:paymentIntent.id})
+        user.total = `${Number(user.total) + paymentIntent.amount/100}`
+        let savedUser = await user.save()
+        let transaction = await transactions.findOne({sourceId:paymentIntent.id}).populate('employee')
+        transaction.total = paymentIntent.amount/100
+        console.log('transaction=====',transaction)
+        let employee = transaction.employee
+        if(employee){
+          console.log('employee======', employee)
+          employee.sales.push(transaction._id)
+          let team = await Teams.findOne({_id:employee.team}) 
+          team.transactions.push(transaction._id)
+          await team.save()
+          await employee.save()  
+        }
+        await transaction.save()  
+        console.log('employee======', employee)
+
+        console.log("success status bby we lit")
+        response.status(200)
         break;
-      case 'payment_method.attached':
-        const paymentMethod = event.data.object;
-        // Then define and call a method to handle the successful attachment of a PaymentMethod.
-        // handlePaymentMethodAttached(paymentMethod);
-        break;
-      default:
-        // Unexpected event type
-        console.log(`Unhandled event type ${event.type}.`);
+
+        case 'payment_intent.failed':
+          let deleted = await transactions.findOneAndDelete({sourceId:paymentIntent.id})
+          console.log(deleted)
+          console.log('deleted transaction')
+          response.status(200).end()
+          break; 
+      
+        default:
+          console.log(`Unhandled event type ${event.type}`);
     }
   
-    // Return a 200 response to acknowledge receipt of the event
-    response.send();
-  ;
+    
+    response.json({received: true});
+  
+
 }

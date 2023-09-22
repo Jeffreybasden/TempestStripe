@@ -1,7 +1,9 @@
 const JWT = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const adminUser = require('../models/adminUser')
+const Teams = require('../models/teams')
 var coinbase = require('coinbase-commerce-node');
+const employees = require('../models/employee');
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 
 var Client = coinbase.Client;
@@ -78,10 +80,10 @@ const coinbaseSearch = async(name, time) =>{
         }
 
 
-    }) 
+    }).sort((a,b)=>a.created_at - b.created_at)
         
     }else if (name && !time){
-        final = confirmed.filter(charge => charge.name === name)
+        final = confirmed.filter(charge => charge.name === name).filter((a,b)=>a.created_at - b.created_at)
     }else if(time && !name){
         final = confirmed.filter(charge=>{
             switch(time){
@@ -96,11 +98,12 @@ const coinbaseSearch = async(name, time) =>{
             }
     
     
-        }) 
+        }).sort((a,b)=>a.created_at - b.created_at) 
 
     }else{
-        final = confirmed
+        final = confirmed.sort((a,b)=>a.created_at - b.created_at)
     }
+    
 
     return final.map(charge =>{
         return {email:charge.name, time:convertDateFormat(charge.created_at), source:'coinbase', amount:charge.pricing.local.amount}
@@ -112,9 +115,8 @@ const coinbaseSearch = async(name, time) =>{
 const stripeSearch = async(name,time)=>{
     let final = []
     let {data} = await stripe.charges.list({status:'succeeded',limit:1000})
-    console.log('before the filter',data.length)
-    // data = data.filter(charge=> charge.status === 'succeeded')
-    console.log('after the filter',data.length)
+    
+    data = data.filter(charge=> charge.status === 'succeeded')
     let checkList = await stripe.checkout.sessions.list({limit:1000})
     console.log('check before the filter',checkList.data.length)
     let  data2 = checkList.data.filter(check=>check.payment_status === 'paid')
@@ -145,7 +147,7 @@ const stripeSearch = async(name,time)=>{
                     case 'day': 
                     return name === charge.receipt_email && isDateInPastDay(charge.created*1000) 
                 }
-            })     
+            }).sort((a,b)=>a.created - b.created)     
         }else if (name && !time){
          console.log('just name  showing up')
          final = data.filter(charge => charge.receipt_email === name)
@@ -160,12 +162,12 @@ const stripeSearch = async(name,time)=>{
                  case 'day': 
                      return isDateInPastDay(charge.created * 1000) 
              } 
-         })  
+         }).sort((a,b)=>a.created - b.created)  
      }else{
-        console.log('nothing showed up')
-         final = data
+        console.log('nothing showed up')   
+         final = data.sort((a,b)=> a.created - b.created)
      }
-
+    
      
      return final.map(charge =>{
          return {email:charge.receipt_email, time:convertDateFormat(charge.created* 1000), source:'stripe', amount:charge.amount / 100}
@@ -178,12 +180,12 @@ const stripeSearch = async(name,time)=>{
 exports.getData = async(req,res) =>{
 try {
     const {user,time} = req.body
-    console.log(user,time)
+   
     let coinbaseFiltered = await coinbaseSearch(user,time)
     let stripeFiltered = await stripeSearch(user,time)
-    let walletFiltered
+    let walletFiltered 
     let fullTransaction = coinbaseFiltered.concat(stripeFiltered)
-    
+    fullTransaction = fullTransaction.filter(charge=> charge.email !== null)
     res.json(fullTransaction)
     
 } catch (error) {
@@ -195,17 +197,21 @@ try {
 }
 
 exports.getTotal = async(req,res) =>{
+ try{
 
-    let {data} = await stripe.charges.list({limit:1000})
-    data = data.map(charge=> charge.amount / 100).reduce((acc,curr)=> acc+=curr,0)
-    const sessions = await stripe.checkout.sessions.list({limit:1000})
-    const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' ).reduce((acc,curr)=> acc+=curr.amount_total/100,0)
-
-    let coin = await charge.all({}) //get all charges
-    const total = coin.filter(charge => charge.confirmed_at).map(charge=> Number(charge.pricing.local.amount)).reduce((acc,curr)=> acc+=curr,0) + data// filter charges that were completed
-    console.log('TOTALALALAL',total)
-    console.log(paidSesh,total)
-    res.json({total:total+paidSesh}) 
+     let {data} = await stripe.charges.list({limit:1000})
+     data = data.map(charge=> charge.amount / 100).reduce((acc,curr)=> acc+=curr,0)
+     const sessions = await stripe.checkout.sessions.list({limit:1000})
+     const paidSesh = sessions.data.filter(check=>check.payment_status === 'paid' ).reduce((acc,curr)=> acc+=curr.amount_total/100,0)
+     
+     let coin = await charge.all({}) //get all charges
+     const total = coin.filter(charge => charge.confirmed_at).map(charge=> Number(charge.pricing.local.amount)).reduce((acc,curr)=> acc+=curr,0) + data// filter charges that were completed
+     console.log('TOTALALALAL',total)
+     console.log(paidSesh,total)
+     res.json({total:total+paidSesh}) 
+    }catch(e){
+        console.log(e)
+    }
 }
 
 exports.login = async(req,res)=>{
@@ -213,6 +219,7 @@ exports.login = async(req,res)=>{
     const token = JWT.sign(email,secret)
     try {
         const admin = await adminUser.findOne({email})
+        const employee = await employees.findOne({email})
         if(admin){
             const validPassword = await bcrypt.compare(password,admin.password)
             if(validPassword){
@@ -221,16 +228,26 @@ exports.login = async(req,res)=>{
                 res.json({token})
             }else res.json({error:'access denied'})
     
-        }else res.json({error:'access denied'})
+        }else if(employee){
+            const validPassword = await bcrypt.compare(password,employee.password)
+            if(validPassword){
+                employee.jwt = token
+                await employee.save() 
+                res.json({token})
+            }else res.json({error:'access denied'})
+        }else{
+            res.json({error:'access denied'})
+        }
              
     } catch (error) {
         console.log(error)
+        res.json({error:'access denied'})
     }
 
 }
 
 
-exports.register = async(req,res) =>{
+exports.register = async(req,res) => {
     
     let {email, password}= req.body 
     const token =  JWT.sign(email,secret)
@@ -244,3 +261,17 @@ exports.register = async(req,res) =>{
     }
 
 }
+
+
+
+exports.getTeams = async(req,res) => {
+
+    const populatedTeams = await Teams.find({}).populate('members').populate('transactions')
+    console.log(populatedTeams)
+    res.status(200).end()
+
+
+}
+
+
+

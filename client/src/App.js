@@ -1,5 +1,5 @@
 
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
 import NavBar from './components/navbar';
 import LandingPage from './components/landingpage';
 import Dashboard from './components/dashboard';
@@ -14,6 +14,7 @@ import { ethers } from 'ethers'
 import { useEffect, useState } from 'react';
 
 const App = () => {
+
   const [Provider, SetProvider] = useState(undefined)
   const [notAvax, setAvax] = useState(false)
   const [account, setAccount] = useState(false)
@@ -110,7 +111,7 @@ const App = () => {
 
           </Space>}
           <Routes>
-            <Route path='/' element={<LandingPage connect={connectWallet} notification={successfulAction} />} />
+            <Route path='/:id' element={<LandingPage connect={connectWallet} notification={successfulAction} />} />
             <Route path='/dashboard' element={<Dashboard account={account} provider={Provider} notification={successfulAction} />} />
             <Route path='/register'  element={<Register setLoggedIn={setLoggedIn} notification={successfulAction} />} />
             <Route path='/login'  element={<Login setLoggedIn={setLoggedIn} notification={successfulAction} />} />

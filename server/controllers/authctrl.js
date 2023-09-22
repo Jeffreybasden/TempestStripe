@@ -1,6 +1,6 @@
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
 const bcrypt = require('bcrypt')
-const User = require('../models/users')
+const Users = require('../models/users')
 const Jwt = require('jsonwebtoken')
 const secret = 'theValueIsInYouNotWithout'
 var coinbase = require('coinbase-commerce-node');
@@ -12,8 +12,9 @@ Client.init(process.env.E_TEMPEST);
 
 exports.Login = async (req,res) =>{
     const {email, password} = req.body
+    console.log(password)
     try{
-        const customer = await User.findOne({email:email})
+        const customer = await Users.findOne({email:email})
         if(customer === undefined){
             console.log("email wrong")
             return res.status(400).json({message:'Email or password is incorrect'}) 
@@ -39,24 +40,19 @@ exports.Login = async (req,res) =>{
 }
 
 exports.GetUser = async(req,res) =>{
-    const token = req.headers.authorization.split(' ')[1]
-   
-    try{
-        
-        const customer = await User.findOne({jwt:token})
-        
-       
+    const token = req.headers.authorization.split(' ')[1]   
+    try{   
+        const customer = await Users.findOne({jwt:token})
         if(customer === undefined){
             console.log('search got nothing')
            return res.status(400).end("no customer found")
         }
-         
-        return res.status(200).json({name:customer.name, purchase_amount:customer.total,})
+        return res.json({name:customer.name, purchase_amount:Number(customer.total)})
     }catch(e){
-        if(e){
+        if(e){ 
             console.log(e)
-            return res.status(400).end()
-        }
+            return res.status(400).end() 
+        }  
 
     
     }
@@ -66,34 +62,28 @@ exports.GetUser = async(req,res) =>{
 
 exports.Register = async(req,res)=>{
    let {name, email, password} = req.body 
+   console.log(password)
    const token =  Jwt.sign(email,secret)
-   password = await bcrypt.hash(password,12)
-
+   
    try{
-       let {data:[customer]} = await stripe.customers.search({query: `email:"${email}"`})
-       if(customer !== undefined && customer.metadata.password !== undefined ){
+    const existingUser = await Users.findOne({ email });
+    console.log(existingUser)
+       if(existingUser){
            return res.status(400).json({message:"You already have an account please go to login page"})
-        }else if (customer !== undefined && customer.metadata.password === undefined){
-            customer = await stripe.customers.update(
-                customer.id,
-                {name:name , metadata:{ password:password, jwt:token}}
-              );
-
-             return  res.status(200).json({message:"Your account was created!", name:name, jwt:token})
-        }else{
-            let newCustomer = await stripe.customers.create({
-                    email:email,
-                    name: name,
-                    metadata: {password:password, jwt:token}
-                })
-                
-                if(newCustomer.metadata.jwt === token){
-                   return res.status(200).json({message:"Your account was created!", name:name, jwt:token})
-                }
-
         }
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const newUser = new Users({
+            name,
+            email,
+            password: hashedPassword,
+            jwt:token
+          });
+
+          await newUser.save()
+          return res.status(200).json({ message: "Your account was created!", name, jwt: token});
     }catch(e){
         console.log(e)
+        return res.status(500).json({ message: "Internal Server Error" });
     }
    
 }
@@ -101,10 +91,7 @@ exports.Register = async(req,res)=>{
 exports.LogOut = async(req,res)=>{
     const token = req.headers.authorization.split(' ')[1]
         try{
-            const {data:[customer]}  = await stripe.customers.search({query: `metadata["jwt"]:"${token}"`})
-            const logout = await stripe.customers.update(customer.id,
-                {metadata:{jwt:''}}
-                )
+            const logout = await Users.findOneAndUpdate({jwt:token},{jwt:''})
                 if(logout){
                    res.status(200).end() 
                 }
@@ -113,45 +100,44 @@ exports.LogOut = async(req,res)=>{
         }
 }
 
+// exports.Coinbase = async(req,res)=>{
+//     let name 
+//     let type = req.body.type
 
-exports.Coinbase = async(req,res)=>{
-    let name 
-    let type = req.body.type
-
-    if(type === 'jwt'){
-        // the loop is here because the stripe api is slow to update since it is all saved in stripe. So we call it until we get a the proper data
-            try{
-                const {data:[customer]} = await stripe.customers.search({query: `metadata["jwt"]:"${req.body.name}"`})
-                if(customer){
-                    name = customer.email
-                }else throw new Error('jwt did not update yet retrying')
-            }catch(e){
-                console.log(e)
-                return res.status(400).end() 
-            }
+//     if(type === 'jwt'){
+//         // the loop is here because the stripe api is slow to update since it is all saved in stripe. So we call it until we get a the proper data
+//             try{
+//                 const {data:[customer]} = await stripe.customers.search({query: `metadata["jwt"]:"${req.body.name}"`})
+//                 if(customer){
+//                     name = customer.email
+//                 }else throw new Error('jwt did not update yet retrying')
+//             }catch(e){
+//                 console.log(e)
+//                 return res.status(400).end() 
+//             }
         
-    }else{
-        name = req.body.name
-    }
+//     }else{
+//         name = req.body.name
+//     }
 
-    Charge.all({}, function (error, list, pagination) {
-        if(error){
-         return console.log(error)
-        }
+//     Charge.all({}, function (error, list, pagination) {
+//         if(error){
+//          return console.log(error)
+//         }
         
-        let count = 1
-        let parsedCharges = list.reduce((acc,charge)=>{
-            if(charge.name === name){
-                acc.push({key:count, name:charge.name, amount:charge.pricing.local, url:charge.hosted_url, status:charge.timeline[charge.timeline.length-1], expires:charge.expires_at})
-                count++
-            }
+//         let count = 1
+//         let parsedCharges = list.reduce((acc,charge)=>{
+//             if(charge.name === name){
+//                 acc.push({key:count, name:charge.name, amount:charge.pricing.local, url:charge.hosted_url, status:charge.timeline[charge.timeline.length-1], expires:charge.expires_at})
+//                 count++
+//             }
 
-            return acc
-        },[]) 
-        return res.json(parsedCharges)
-      });
+//             return acc
+//         },[]) 
+//         return res.json(parsedCharges)
+//       });
 
-}
+// }
 
 exports.AddWallet = async(req,res) =>{
 
@@ -159,15 +145,17 @@ exports.AddWallet = async(req,res) =>{
     const wallet = req.body.wallet
 
     try{
-        const {data:[customer]} = await stripe.customers.search({query: `metadata["jwt"]:"${token}"`})
-        const walletAdded = await stripe.customers.update(
-            customer.id, {metadata:{wallet:wallet}}
-        )
+        
+        const walletAdded = await Users.findOneAndUpdate({jwt:token}, {wallet:wallet})
         if(walletAdded){
             res.status(200).end()
         }
     }catch(e){
         console.log(error)
     }
+
+}
+
+exports.changePassword = async (req,res) =>{
 
 }

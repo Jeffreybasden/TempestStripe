@@ -35,7 +35,7 @@ const Pay = (props) => {
   }
 
   const usdcContract = new ethers.Contract('0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E',usdcAbi,provider?.getSigner())
-  const presaleContract = new ethers.Contract('0x7e9d22f5EBF3f4808A259E9F864a7d24f6E79461',presaleContractAbi,provider?.getSigner())
+  const presaleContract = new ethers.Contract('0x07E2686f9E06f690fE36cB2d128767C6E067b51b',presaleContractAbi,provider?.getSigner())
    
 
   const openNotification = (placement, icon, message, title ) => {
