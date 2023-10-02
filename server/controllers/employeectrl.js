@@ -60,7 +60,7 @@ exports.register = async(req,res) =>{
             await assignedTeam.save()
             Employee.team = assignedTeam._id
             await Employee.save()
-            res.json({token:Employee._id}) 
+            res.json({token:Employee._id, admin:false}) 
         }
     } catch (error) {
         res.json({error:error}) 

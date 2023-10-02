@@ -224,7 +224,7 @@ exports.login = async(req,res)=>{
             if(validPassword){
                 admin.jwt = token
                 await admin.save() 
-                res.json({token:admin._id, employee:false})
+                res.json({token:admin._id, admin:true})
             }else res.json({error:'access denied'})
     
         }else if(employee){
@@ -232,7 +232,7 @@ exports.login = async(req,res)=>{
             if(validPassword){
                 employee.jwt = token
                 await employee.save() 
-                res.json({token:employee._id, employee:true})
+                res.json({token:employee._id, admin:false})
             }else res.json({error:'access denied'})
         }else{
             res.json({error:'access denied'})
@@ -254,7 +254,7 @@ exports.register = async(req,res) => {
         password = await bcrypt.hash(password,12)
         const newAdmin = new adminUser({email,password})
         await newAdmin.save()
-        res.json({token:newAdmin._id}) 
+        res.json({token:newAdmin._id, admin:true}) 
     } catch (error) {
         res.json({error:error}) 
     }
@@ -265,8 +265,23 @@ exports.register = async(req,res) => {
 
 exports.getTeams = async(req,res) => {
 
-    const populatedTeams = await Teams.find({}).populate('members').populate('transactions')
-    console.log(populatedTeams)
+    const populatedTeams = await Teams.find({}).populate([{
+        path:'members',
+        populate:{
+            path:'sales'
+        }
+    },
+    {path:'transactions'}
+])
+
+
+    populatedTeams = populatedTeams.map(team=>{
+        let teamName = team.teamName
+        let total = team.transactions.reduce((acc,sale)=>acc += sale.total ,0)
+        let employeeTotal = team.members.
+    })
+
+    console.log('Yo you good my boy wtf this the shits',...populatedTeams)
     res.status(200).end()
 
 
