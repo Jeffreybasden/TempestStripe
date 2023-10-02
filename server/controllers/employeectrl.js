@@ -44,8 +44,7 @@ function findSmallestArray(arrays) {
 
 exports.register = async(req,res) =>{
     
-    let {email, password} = req.body 
-    const token =  JWT.sign(email,secret)
+    let {name,email, password} = req.body 
     let teams = await Team.find({})
 
     try {
@@ -54,14 +53,14 @@ exports.register = async(req,res) =>{
          return res.status(400).json({message:"You already have an account please go to login page"})
         }else{
             password = await bcrypt.hash(password,12)
-            const newEmployee = new employee({email, password, jwt:token})
+            const newEmployee = new employee({email, password,employeeName:name})
             let Employee = await newEmployee.save()
             let assignedTeam = findSmallestArray(teams)
             assignedTeam.members.push(Employee._id)
             await assignedTeam.save()
             Employee.team = assignedTeam._id
             await Employee.save()
-            res.json({token}) 
+            res.json({token:Employee._id}) 
         }
     } catch (error) {
         res.json({error:error}) 
@@ -69,8 +68,41 @@ exports.register = async(req,res) =>{
 
 }
 
-exports.employeeData = (req,res) =>{
+exports.employeeData = async(req,res) =>{
 
+  try{
+    const token = req.headers.authorization.split(' ')[1]
+    console.log('tokennnn============>>>>',token)
+    let currentEmployee = await employee.findOne({_id:token})
+    .populate('sales')
+    .populate({
+      path:'team',
+      populate:[{
+        path:'members'
+      },
+      {
+        path:'transactions'
+      }]
+
+    })
+    let total = 0
+    let team = currentEmployee.team
+    let teamName = team.teamName
+    let sales = currentEmployee.sales
+    if(sales[0] !== undefined){
+      total = sales.reduce((acc,curr)=>acc+=curr.total,0)
+    }
+    team = team.members.map(members =>{
+      
+      return members.employeeName
+    })
+    console.log("Team==>", team)
+    console.log("Sales==>", sales)
+   return res.json({name:currentEmployee.employeeName,team, employeeId:currentEmployee._id, teamName, total})
+  }catch(e){
+    console.log(e)
+  }
+    
 
 
 }

@@ -76,7 +76,8 @@ exports.Register = async(req,res)=>{
             name,
             email,
             password: hashedPassword,
-            jwt:token
+            jwt:token,
+            total:0
           });
 
           await newUser.save()

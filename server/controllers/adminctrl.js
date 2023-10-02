@@ -118,26 +118,26 @@ const stripeSearch = async(name,time)=>{
     
     data = data.filter(charge=> charge.status === 'succeeded')
     let checkList = await stripe.checkout.sessions.list({limit:1000})
-    console.log('check before the filter',checkList.data.length)
+    
     let  data2 = checkList.data.filter(check=>check.payment_status === 'paid')
-    console.log('check before the filter',data2.length)
+   
 
     data2 = data2.map(charge=>{
 
         if(charge.customer_details.email){
             charge.receipt_email = charge.customer_details.email
-            console.log('first one',charge.receipt_email)
+            
         }else if(charge.customer){
             charge.receipt_email = charge.customer.email
-            console.log('second one',charge.receipt_email)
+            
         }
         charge.amount = charge.amount_total
         return charge 
     }) 
     data = data2.concat(data)
-    console.log('data concatenated',data.length)
+   
     if(name && time){
-        console.log('name and time are showing up')
+       
         final = data.filter(charge=>{
             switch(time){
                 case 'week':
@@ -149,10 +149,10 @@ const stripeSearch = async(name,time)=>{
                 }
             }).sort((a,b)=>a.created - b.created)     
         }else if (name && !time){
-         console.log('just name  showing up')
+         
          final = data.filter(charge => charge.receipt_email === name)
         }else if(time && !name){
-         console.log('just time showing up')
+        
          final = data.filter(charge=>{
              switch(time){
                  case 'week':
@@ -164,7 +164,7 @@ const stripeSearch = async(name,time)=>{
              } 
          }).sort((a,b)=>a.created - b.created)  
      }else{
-        console.log('nothing showed up')   
+           
          final = data.sort((a,b)=> a.created - b.created)
      }
     
@@ -206,8 +206,7 @@ exports.getTotal = async(req,res) =>{
      
      let coin = await charge.all({}) //get all charges
      const total = coin.filter(charge => charge.confirmed_at).map(charge=> Number(charge.pricing.local.amount)).reduce((acc,curr)=> acc+=curr,0) + data// filter charges that were completed
-     console.log('TOTALALALAL',total)
-     console.log(paidSesh,total)
+     
      res.json({total:total+paidSesh}) 
     }catch(e){
         console.log(e)
@@ -225,7 +224,7 @@ exports.login = async(req,res)=>{
             if(validPassword){
                 admin.jwt = token
                 await admin.save() 
-                res.json({token})
+                res.json({token:admin._id, employee:false})
             }else res.json({error:'access denied'})
     
         }else if(employee){
@@ -233,7 +232,7 @@ exports.login = async(req,res)=>{
             if(validPassword){
                 employee.jwt = token
                 await employee.save() 
-                res.json({token})
+                res.json({token:employee._id, employee:true})
             }else res.json({error:'access denied'})
         }else{
             res.json({error:'access denied'})
@@ -250,12 +249,12 @@ exports.login = async(req,res)=>{
 exports.register = async(req,res) => {
     
     let {email, password}= req.body 
-    const token =  JWT.sign(email,secret)
+    
     try {
         password = await bcrypt.hash(password,12)
-        const newAdmin = new adminUser({email,password,jwt:token})
+        const newAdmin = new adminUser({email,password})
         await newAdmin.save()
-        res.json({token}) 
+        res.json({token:newAdmin._id}) 
     } catch (error) {
         res.json({error:error}) 
     }

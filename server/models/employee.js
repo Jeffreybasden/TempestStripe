@@ -25,7 +25,11 @@ const employee = new mongoose.Schema({
     sales:[{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'transactions', // Reference to the transaction model
-      },]
+      },],
+
+    
+
+
 
 })
 

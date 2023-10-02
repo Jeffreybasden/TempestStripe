@@ -18,7 +18,7 @@ const Users = new mongoose.Schema({
         required:false
     },
     total:{
-        type:String,
+        type:Number,
         required:false
     },
 

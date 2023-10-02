@@ -25,45 +25,50 @@ exports.stripeWebhook = async (request,response) =>{
   
     const event = request.body;
   
-  
-    switch (event.type) {
-      case 'payment_intent.succeeded':
-        const paymentIntent = event.data.object;
-        let user = await Users.findOne({paymentIntent:paymentIntent.id})
-        user.total = `${Number(user.total) + paymentIntent.amount/100}`
-        let savedUser = await user.save()
-        let transaction = await transactions.findOne({sourceId:paymentIntent.id}).populate('employee')
-        transaction.total = paymentIntent.amount/100
-        console.log('transaction=====',transaction)
-        let employee = transaction.employee
-        if(employee){
+    try{
+
+      
+      switch (event.type) {
+        case 'payment_intent.succeeded':
+          const paymentIntent = event.data.object;
+          let user = await Users.findOne({paymentIntent:paymentIntent.id})
+          user.total += paymentIntent.amount/100
+          let savedUser = await user.save()
+          let transaction = await transactions.findOne({sourceId:paymentIntent.id}).populate('employee')
+          transaction.total = paymentIntent.amount/100
+          console.log('transaction=====',transaction)
+          let employee = transaction.employee
+          if(employee){
+            console.log('employee====== before the changes', employee)
+            employee.sales.push(transaction._id)
+            let team = await Teams.findOne({_id:employee.team}) 
+            team.transactions.push(transaction._id) 
+            await team.save()
+            await employee.save()  
+          }
+          await transaction.save()  
           console.log('employee======', employee)
-          employee.sales.push(transaction._id)
-          let team = await Teams.findOne({_id:employee.team}) 
-          team.transactions.push(transaction._id)
-          await team.save()
-          await employee.save()  
-        }
-        await transaction.save()  
-        console.log('employee======', employee)
-
-        console.log("success status bby we lit")
-        response.status(200)
-        break;
-
-        case 'payment_intent.failed':
-          let deleted = await transactions.findOneAndDelete({sourceId:paymentIntent.id})
-          console.log(deleted)
-          console.log('deleted transaction')
-          response.status(200).end()
-          break; 
+          
+          console.log("success status bby we lit")
+          response.status(200)
+          break;
+          
+          case 'payment_intent.failed':
+            let deleted = await transactions.findOneAndDelete({sourceId:paymentIntent.id})
+            console.log(deleted)
+            console.log('deleted transaction')
+            response.status(200).end()
+            break; 
       
         default:
           console.log(`Unhandled event type ${event.type}`);
-    }
+        }
   
-    
-    response.json({received: true});
-  
-
+        
+      }catch(e){
+        console.log(e)
+      }
+        response.json({received: true});
+        
+        
 }

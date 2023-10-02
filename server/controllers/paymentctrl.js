@@ -10,59 +10,6 @@ var charge = coinbase.resources.Charge
 Client.init(process.env.E_TEMPEST);
 
 
-// exports.paymentRegister = async(req,res)=>{
-//     let customer;
-//     let {token} = req.body
-//     let jwt = JWT.sign(token.email,secret)
-//     let amount = req.body.amount * 100
-//     let password = await bcrypt.hash(req.body.password, 12)
-//     try{
-//         //find customer if they already exist 
-//         const retrieveCustomer = await stripe.customers.search({query: `email:"${token.email}"`})
-//         if(retrieveCustomer.data[0]){
-//             customer = retrieveCustomer.data[0]
-//             //check if the have a password already
-//             if(customer.metadata.password){
-//                 return res.status(400).json({error:"You already have an account please go to login page"})
-//             }
-//             customer = await stripe.customers.update(
-//                 customer.id,
-//                 {metadata: {password:password, jwt:jwt}, source:token.id}
-//               );
-              
-//         }else{
-//             //create new customer if they do not exist
-//             customer = await stripe.customers.create({
-//                 email:token.email,
-//                 name: token.card.name,
-//                 source:token.id,
-//                 metadata: {password:password,jwt:jwt}
-//             })
-
-//             console.log(customer)
-//         }
-//         const paymentIntent =  await stripe.paymentIntents.create({
-//             customer:customer.id,
-//             amount:amount,
-//             currency:'USD',
-//             confirm:true,
-//             receipt_email:token.email,
-//         })
-//             setTimeout(()=>{},5000)
-//         if(paymentIntent.status === "succeeded" ){
-//             res.status(200).json({name:customer.name,jwt:jwt})
-//             console.log('congrats on our purchase')
-//         }
-            
-        
-//     }catch(e){
-//         if(e){
-//             res.status(400)
-//             res.json({error:e.message + " As you now have an account please login and retry your purchase"})
-//             console.log(e.message)
-//         }
-//     }
-// }
 
 exports.payment = async(req,res)=>{
     let  {amount, employeeId} = req.body
@@ -92,11 +39,11 @@ exports.payment = async(req,res)=>{
                     user.paymentIntent = paymentIntent.id
                     await user.save()
                     
-                    if(employeeId == "undefined"){
-                        console.log('not undefined')
+                    if(employeeId !== "undefined"){
+                        console.log('EmployeeId is used')
                         transaction = new transactions({sourceId:paymentIntent.id, employee:employeeId, source:'stripe'})
                     }else{
-                        console.log('undefined')
+                        console.log('Employee ID is undefined')
                         transaction = new transactions({sourceId:paymentIntent.id, source:'stripe'})
                     } 
                     await transaction.save()

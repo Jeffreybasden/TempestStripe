@@ -3,6 +3,7 @@ const employee = require('../controllers/employeectrl')
 
 
 router.post('/employee-register',employee.register)
+router.get('/employee-data',employee.employeeData)
 
 
 
