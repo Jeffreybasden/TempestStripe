@@ -83,7 +83,7 @@ exports.employeeData = async(req,res) =>{
       {
         path:'transactions'
       }]
-
+ 
     })
     let total = 0
     let team = currentEmployee.team
@@ -101,6 +101,7 @@ exports.employeeData = async(req,res) =>{
    return res.json({name:currentEmployee.employeeName,team, employeeId:currentEmployee._id, teamName, total})
   }catch(e){
     console.log(e)
+    res.status(200).end()
   }
     
 

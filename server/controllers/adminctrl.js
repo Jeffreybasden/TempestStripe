@@ -278,11 +278,18 @@ exports.getTeams = async(req,res) => {
     populatedTeams = populatedTeams.map(team=>{
         let teamName = team.teamName
         let total = team.transactions.reduce((acc,sale)=>acc += sale.total ,0)
-        let employeeTotal = team.members.
+        let employeeTotal = team.members.map(employ=>{
+            let name = employ.employeeName
+            let totalSales =  employ.sales.reduce((acc,sale)=>acc+=sale,0)
+            return {name, totalSales}
+
+        })
+
+        return {teamName, total, employeeTotal}
     })
 
     console.log('Yo you good my boy wtf this the shits',...populatedTeams)
-    res.status(200).end()
+    res.json(populatedTeams)
 
 
 }

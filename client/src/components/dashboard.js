@@ -80,40 +80,41 @@ const Dashboard = (props) =>{
     }
   } 
 
-  //   async function getTransactions(){
-  //     let name 
-  //     let type
-  //     if(localStorage.getItem('wallet')){
-  //         name = localStorage.getItem('wallet')
-  //         type = 'wallet'
-  //     }else{
-  //         name = localStorage.getItem('jwt')
-  //         type = 'jwt'
-  //     } 
+    async function getTransactions(){
+      let name 
+      let type
+      if(localStorage.getItem('wallet')){
+          name = localStorage.getItem('wallet')
+          type = 'wallet'
+      }else{
+          name = localStorage.getItem('jwt')
+          type = 'jwt'
+      } 
       
-  //     try{
-  //         let res = await fetch('http://localhost:4000/coinbase-user',{
-  //             method:"POST",
-  //             body:JSON.stringify({name,type}),
-  //             headers:{'Content-Type': 'application/json'}
-  //         })
-  //         if(res.ok){
-  //             res = await res.json() 
-  //             let tempData = res.reduce((acc,curr)=>{
-  //               if(curr.status.status === 'RESOLVED' || curr.status.status==='COMPLETED'){
-  //                  acc+=Number(curr.amount.amount)
-  //               }
-  //               return acc
-  //             },0)
-  //             tempData = tempData/.15
-  //             return tempData
-  //         }else throw new Error('no info to show')
-  //     }catch(e){
-  //         console.log(e)
-  //         getTransactions()
-  //     }
+      try{
+          let res = await fetch('http://localhost:4000/coinbase-user',{
+              method:"POST",
+              body:JSON.stringify({name,type}),
+              headers:{'Content-Type': 'application/json'}
+          })
+          if(res.ok){
+              res = await res.json() 
+              let tempData = res.reduce((acc,curr)=>{
+                if(curr.status.status === 'RESOLVED' || curr.status.status==='COMPLETED'){
+                   acc+=Number(curr.amount.amount)
+                }
+                return acc || 0
+              },0)
+              tempData = tempData/.25
+              console.log(tempData)
+              return tempData
+          }else throw new Error('no info to show')
+      }catch(e){
+          console.log(e)
+          getTransactions()
+      }
   
-  //  }
+   }
     //get user info if its a wallet
   async function getWalletInfo(){
       try{
@@ -122,7 +123,7 @@ const Dashboard = (props) =>{
           const preTempestContract = new ethers.Contract(preTempestAddress, preTempestAbi,provider)
           let noFormatBalance = await preTempestContract.balanceOf(userAddress)
           noFormatBalance = noFormatBalance.toString()
-          let Balance = Number(ethers.utils.formatUnits(noFormatBalance,18)) /*+ await getTransactions()*/
+          let Balance = Number(ethers.utils.formatUnits(noFormatBalance,18)) + await getTransactions()
           let Cost = Balance *.15
           let Market = Balance*.15
           let Expected = (Market * 1.1)/12

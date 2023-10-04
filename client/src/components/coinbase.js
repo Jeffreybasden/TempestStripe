@@ -128,6 +128,7 @@ const Coinbase = (props) => {
   const getLink = async token =>{
     let name 
     let type
+    let employeeId
     if(localStorage.getItem('wallet')){
         name = localStorage.getItem('wallet')
         type = 'wallet'
@@ -135,7 +136,11 @@ const Coinbase = (props) => {
         name = localStorage.getItem('jwt')
         type = 'jwt'
     } 
-    const body = {name, amount:amount, type:type}
+
+    if(localStorage.getItem('employeeId')){
+      employeeId = localStorage.getItem('employeeId')
+    }
+    const body = {name, amount:amount, type:type, employeeId}
     const headers = {
     "Content-Type":"application/json"
     }

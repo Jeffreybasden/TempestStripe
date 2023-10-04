@@ -67,6 +67,8 @@ exports.CoinbasePay = async(req,res) => {
     let amount = req.body.amount
     let type = req.body.type
     let customer
+    let employeeId = req.body.employeeId
+
     if(type === 'jwt'){
         // the loop is here because the stripe api is slow to update since it is all saved in stripe. So we call it until we get a the proper data
             try{
@@ -98,8 +100,21 @@ exports.CoinbasePay = async(req,res) => {
     if(error){
         console.log(error);
     }else{
-        customer.coinbaseID = response.id
-        await customer.save()
+        let transaction
+                    console.log('payment intent made')
+                    customer.coinbaseID = response.id
+                    await customer.save()
+                    
+                    if(employeeId !== "undefined"){
+                        console.log('EmployeeId is used')
+                        transaction = new transactions({sourceId:response.id, employee:employeeId, source:'coinbase'})
+                    }else{
+                        console.log('Employee ID is undefined')
+                        transaction = new transactions({sourceId:response.id, source:'coinbase'})
+                    } 
+                    await transaction.save()
+                    console.log(customer.coinbaseID)
+                    
         return res.json({url:response.hosted_url});
     }
     });
