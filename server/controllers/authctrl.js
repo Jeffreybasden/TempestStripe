@@ -79,7 +79,7 @@ exports.Register = async(req,res)=>{
             jwt:token,
             total:0
           });
-
+          let newCustomer = await stripe.customers.create({name,email})
           await newUser.save()
           return res.status(200).json({ message: "Your account was created!", name, jwt: token});
     }catch(e){
