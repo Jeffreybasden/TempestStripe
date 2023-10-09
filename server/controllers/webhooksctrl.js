@@ -21,7 +21,7 @@ exports.coinbaseWebhook = async(request,response) =>{
       console.log(event)
       
       switch (event.type) {
-        case 'payment_intent.succeeded':
+        case 'charge:confirmed':
           
           let user = await Users.findOne({coinbaseID:event.data.id})
           user.total += Number(event.data.pricing.local.amount)
@@ -45,7 +45,7 @@ exports.coinbaseWebhook = async(request,response) =>{
           response.status(200).end()
           break;
           
-          case 'payment_intent.failed':
+          case 'charge:failed':
             let deleted = await transactions.findOneAndDelete({sourceId:paymentIntent.id})
             console.log(deleted)
             console.log('deleted transaction')

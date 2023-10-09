@@ -108,7 +108,7 @@ exports.Coinbase = async(req,res)=>{
     if(type === 'jwt'){
         // the loop is here because the stripe api is slow to update since it is all saved in stripe. So we call it until we get a the proper data
             try{
-                const {data:[customer]} = await stripe.customers.search({query: `metadata["jwt"]:"${req.body.name}"`})
+                const customer = await Users.findOne({jwt:req.body.name})
                 if(customer){
                     name = customer.email
                 }else throw new Error('jwt did not update yet retrying')
@@ -125,18 +125,20 @@ exports.Coinbase = async(req,res)=>{
         if(error){
          return console.log(error)
         }
-        
+        console.log(pagination)
+        console.log(list.length)
         let count = 1
         let parsedCharges = list.reduce((acc,charge)=>{
             if(charge.name === name){
                 acc.push({key:count, name:charge.name, amount:charge.pricing.local, url:charge.hosted_url, status:charge.timeline[charge.timeline.length-1], expires:charge.expires_at})
                 count++
             }
-
+            
             return acc
         },[]) 
+        console.log(parsedCharges)
         return res.json(parsedCharges)
-      });
+      }); 
 
 }
 

@@ -265,7 +265,7 @@ exports.register = async(req,res) => {
 
 exports.getTeams = async(req,res) => {
 
-    const populatedTeams = await Teams.find({}).populate([{
+    let populatedTeams = await Teams.find({}).populate([{
         path:'members',
         populate:{
             path:'sales'
