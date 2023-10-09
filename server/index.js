@@ -6,6 +6,8 @@ const cors = require('cors')
 const paymentRoutes = require('./routes/paymentroutes')
 const authRoutes = require('./routes/authroutes')
 const adminRoutes = require('./routes/admin')
+const webhooks = require('./routes/webhooksroutes')
+const employeeRoutes = require('./routes/employee')
 const mongoose = require('mongoose')
 var Client = coinbase.Client;
 Client.init(process.env.E_TEMPEST);
@@ -17,10 +19,11 @@ app.use(cors())
 app.use(express.json())
 
 //routes
+app.use(webhooks)
 app.use(paymentRoutes)
 app.use(authRoutes)
 app.use(adminRoutes)
-
+app.use(employeeRoutes)
 
 
 

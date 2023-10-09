@@ -128,6 +128,7 @@ const Coinbase = (props) => {
   const getLink = async token =>{
     let name 
     let type
+    let employeeId
     if(localStorage.getItem('wallet')){
         name = localStorage.getItem('wallet')
         type = 'wallet'
@@ -135,13 +136,17 @@ const Coinbase = (props) => {
         name = localStorage.getItem('jwt')
         type = 'jwt'
     } 
-    const body = {name, amount:amount, type:type}
+
+    if(localStorage.getItem('employeeId')){
+      employeeId = localStorage.getItem('employeeId')
+    }
+    const body = {name, amount:amount, type:type, employeeId}
     const headers = {
     "Content-Type":"application/json"
     }
   try{
     setLoading(true)
-   let res = await fetch(`https://tempestapi.onrender.com/coinbase`,
+   let res = await fetch(`http://localhost:4000/coinbase`,
     {
     method:"POST",
     headers,
@@ -240,7 +245,7 @@ e.preventDefault()
           {loading ? <Spin><div className="content" style={{margin:"80px"}} /></Spin> : <>
           <div className="form-block w-form">
             <h4>Dollar amount </h4>
-            <input style={{marginTop:40}} type="number" onChange={(e)=>getAmount(e)} className="form-input w-input" maxLength="256" name="email" data-name="Email" id="email" required=""/>
+            <input style={{marginTop:40}} type="number" onChange={(e)=>getAmount(e)} className="form-input w-input" maxLength="256"  required=""/>
             <button type="primary" hidden={transaction} onClick={getLink} data-wait="Please wait..." className="form-btn w-button">Buy Tempest</button>
           </div>
             </>}

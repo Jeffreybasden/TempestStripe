@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Spin, Dropdown,Row, Input, Button } from "antd";
 import { useNavigate } from "react-router-dom";
 import { NavLink, Link } from "react-router-dom";
+import { useParams } from 'react-router-dom';
 import { ethers } from "ethers";
 import preTempestAbi from '../abi/preTempestAbi.json'
 const preTempestAddress = '0x5f893d6347b501B0D85f4e95296CF9B9701A93B8'
@@ -20,7 +21,6 @@ const ShowEmail = () =>{
 const Dashboard = (props) =>{
     const navigate = useNavigate()
     const [loading,setLoading] = useState(true)
-    const [bigSpin, setBigSpin] = useState(true)
     const [name,setName] = useState('')
     const [balance, setBalance] = useState(0)
     const [staked,setStaked] = useState(0)
@@ -33,7 +33,7 @@ const Dashboard = (props) =>{
     const [addWallet, setAddWallet] = useState()
     const [wallet, setWallet] = useState('')
     const [isWallet, setIsWallet] = useState(false)
-    
+    let {id} = useParams()
     const options = [
       {
         key: '3',
@@ -92,7 +92,7 @@ const Dashboard = (props) =>{
       } 
       
       try{
-          let res = await fetch('https://tempestapi.onrender.com/coinbase-user',{
+          let res = await fetch('http://localhost:4000/coinbase-user',{
               method:"POST",
               body:JSON.stringify({name,type}),
               headers:{'Content-Type': 'application/json'}
@@ -103,9 +103,10 @@ const Dashboard = (props) =>{
                 if(curr.status.status === 'RESOLVED' || curr.status.status==='COMPLETED'){
                    acc+=Number(curr.amount.amount)
                 }
-                return acc
+                return acc || 0
               },0)
-              tempData = tempData/.15
+              tempData = tempData/.25
+              console.log(tempData)
               return tempData
           }else throw new Error('no info to show')
       }catch(e){
@@ -140,11 +141,11 @@ const Dashboard = (props) =>{
   }
       
       
-async function getUserInfo(){
+ async function getUserInfo(){
       const jwt = localStorage.getItem('jwt')
       //https://tempestapi.onrender.com
   try{
-     let response = await fetch('https://tempestapi.onrender.com/get-user', {
+     let response = await fetch('http://localhost:4000/get-user', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -152,45 +153,46 @@ async function getUserInfo(){
         }
       })
         
-      if(response.ok) {
+      if(response.ok){
          let data = await response.json();
+         console.log('original===========',data.purchase_amount)
          // Process the response data
-         let converted = (data.purchase_amount/ 100)/(.25)
-         let Balance = converted + (await getTransactions())
-         let Cost = Balance *.25
-         let Market = Balance*.25
+         let converted = data.purchase_amount/.25 || 0
+         console.log('converted=======',converted)
+        //  let Balance = converted + (await getTransactions())
+         let Cost = converted *.25
+         let Market = converted*.25
          let Expected = (Market * 1.1)/12
          setName(data.name)
-         setBalance(Balance)
-         setCost(Cost)
+         setBalance(converted)
+         setCost(Cost) 
          setMarketValue(Market)
          setExpectedRewards(Expected)
          setLoading(false)
-         getTransactions()
+        
       }else{
         throw new Error('Network response was not ok.');
-        getUserInfo()
+      
       }
        
   }catch(error){
           // Handle the error
-      getUserInfo()
       console.error('Error:', error);
           
   }
 }
     
-    async function checkLoggedIn(){
+  async function checkLoggedIn(){
       // check if logged in local storage
+      
       if(localStorage.getItem('loggedIn') !== null){
-        setBigSpin(false)
         if(localStorage.getItem("jwt") === null){
           return getWalletInfo()
         }else{ 
           return getUserInfo()
         }
       }else{
-        return navigate('/')
+        return navigate(`/${id}`)
       }
       
     }
@@ -211,7 +213,7 @@ async function getUserInfo(){
     
 
     return(
-      bigSpin ? <Spin><div className="content" style={{margin:"20px"}} /></Spin> :
+       
         <>                                                      {/*staking and bond page must have this class name or it will break*/}
         <div data-w-id="2fc6eb50-7d4a-7800-2204-b951b846909b" className="section wf-section">
         <div className="grid">

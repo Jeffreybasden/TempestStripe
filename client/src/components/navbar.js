@@ -86,7 +86,7 @@ const NavBar = (props) =>{
 
     if(localStorage.getItem("jwt")){
       const jwt = localStorage.getItem("jwt")
-      let res = await fetch('https://tempestapi.onrender.com/logout', {
+      let res = await fetch('http://localhost:4000/logout', {
         method: 'POST',
             headers: {
               'Authorization': `Bearer ${jwt}`,
@@ -96,11 +96,11 @@ const NavBar = (props) =>{
     
           if(res.ok){
             props.notification("logout")
+            props.setLoggedIn(false)
             localStorage.removeItem('loggedIn')
             localStorage.removeItem('jwt')
             localStorage.removeItem('name')
-            props.setLoggedIn(false)
-            navigate('/')
+            return navigate('/')
           }
   }else{
     localStorage.removeItem('loggedIn')

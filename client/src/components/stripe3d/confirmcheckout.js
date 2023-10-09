@@ -12,7 +12,7 @@ const CheckoutForm = (props) => {
     // which would refresh the page.
     event.preventDefault();
     
-
+    let body
     if (!stripe || !elements) {
       // Stripe.js hasn't yet loaded.
       // Make sure to disable form submission until Stripe.js has loaded.
@@ -22,14 +22,19 @@ const CheckoutForm = (props) => {
     elements._commonOptions.amount = props.amount
     elements.submit()
     try{
-    const jwt = localStorage.getItem('jwt')  
-    const body = {amount:props.amount}
+    const jwt = localStorage.getItem('jwt') 
+    const employeeId = localStorage.getItem('employeeId')
+    if(employeeId === undefined){
+       body = {amount:props.amount,}
+    }else{
+       body = {amount:props.amount, employeeId}
+    }
     const headers = {
     'Authorization': `Bearer ${jwt}`,
     "Content-Type":"application/json"
     }
     
-   let res = await fetch(`https://tempestapi.onrender.com/payment`,
+   let res = await fetch(`http://localhost:4000/payment`,
     {
     method:"POST",
     headers,

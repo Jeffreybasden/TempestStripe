@@ -3,18 +3,22 @@ import { useState, useEffect } from "react";
 import {Spin} from 'antd'
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
-
+import { useParams } from 'react-router-dom';
 
 const LandingPage = (props) =>{
   const navigate = useNavigate()
   const [loggedIn, setLoggedIn] = useState(false)
   const [loading, setLoading] = useState(true)
-
+  let {id} = useParams()
 
   async function checkLoggedIn(){
     // check if logged in local storage
+    if(localStorage.getItem('employeeId') !== undefined){
+      localStorage.setItem('employeeId', id)
+    }
+    console.log(id)
     if(loggedIn === true){
-      navigate('/dashboard')
+      navigate(`/dashboard`)
     }
     if(localStorage.getItem('loggedIn') !== null){
         setLoggedIn(true)
