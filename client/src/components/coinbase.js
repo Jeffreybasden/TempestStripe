@@ -120,7 +120,7 @@ const Coinbase = (props) => {
   };
 
   const getAmount = (e) =>{
-    let total = (e.target.value/0.15).toFixed(2)
+    let total = (e.target.value/0.25).toFixed(2)
     setDisplay(total)
     setAmount(e.target.value)
   }
@@ -146,7 +146,7 @@ const Coinbase = (props) => {
     }
   try{
     setLoading(true)
-   let res = await fetch(`http://localhost:4000/coinbase`,
+   let res = await fetch(`https://tempestapi.onrender.com/coinbase`,
     {
     method:"POST",
     headers,

@@ -62,7 +62,7 @@ const Pay = (props) => {
     const amount18Decimal = ethers.utils.parseUnits(amount.toString(),18)
     try{
       await usdcContract.approve(presaleContract.address, amountDecimals)
-      await presaleContract.buyTokens(amount18Decimal)
+      await presaleContract.buyTokens(amount18Decimal*4)
 
     }catch(e){
       console.log(e)

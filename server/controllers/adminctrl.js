@@ -280,7 +280,7 @@ exports.getTeams = async(req,res) => {
         let total = team.transactions.reduce((acc,sale)=>acc += sale.total ,0)
         let employeeTotal = team.members.map(employ=>{
             let name = employ.employeeName
-            let totalSales =  employ.sales.reduce((acc,sale)=>acc+=sale,0)
+            let totalSales =  employ.sales.reduce((acc,sale)=>acc+=sale.total,0) 
             return {name, totalSales}
 
         })
@@ -288,7 +288,7 @@ exports.getTeams = async(req,res) => {
         return {teamName, total, employeeTotal}
     })
 
-    console.log('Yo you good my boy wtf this the shits',...populatedTeams)
+    console.log(...populatedTeams)
     res.json(populatedTeams)
 
 
