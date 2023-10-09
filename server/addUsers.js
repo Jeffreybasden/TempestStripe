@@ -155,40 +155,41 @@ const  getAllCustomers = async() =>{
   
 
 async function Meep(){
-    mongoose.connect("mongodb+srv://tempestwebsite:uA9LuxpHLRCwV28V@cluster0.rdy8xpc.mongodb.net/?retryWrites=true&w=majority", {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      })
+    // mongoose.connect("mongodb+srv://tempestwebsite:uA9LuxpHLRCwV28V@cluster0.rdy8xpc.mongodb.net/?retryWrites=true&w=majority", {
+    //     useNewUrlParser: true,
+    //     useUnifiedTopology: true,
+    //   })
 try{
 
 
 
   // fetchCustomersAndTransactions()
-  let usersList = JSON.parse(fs.readFileSync('./allcustomers.json'))
-  usersList = removeObjectsWithRepeatedProperty(usersList, 'email')
+  // let usersList = JSON.parse(fs.readFileSync('./allcustomers.json'))
+  // usersList = removeObjectsWithRepeatedProperty(usersList, 'email')
   
-  let coinCharge = JSON.parse(fs.readFileSync('./coinbaseTrans.json'))
+  // let coinCharge = JSON.parse(fs.readFileSync('./coinbaseTrans.json'))
 
-  usersList.forEach(user=>{
-      coinCharge.forEach(charge=>{
-        if(user.email === charge.name){
-          console.log('before change in price', user.total)
-          user.total+=charge.amount
-          console.log('after change in price', user.total)
-        }
-      })
-  })
+  // usersList.forEach(user=>{
+  //     coinCharge.forEach(charge=>{
+  //       if(user.email === charge.name){
+  //         console.log('before change in price', user.total)
+  //         user.total+=charge.amount
+  //         console.log('after change in price', user.total)
+  //       }
+  //     })
+  // })
 
-  usersList.sort((a,b)=> b.total - a.total).forEach(async newCustomer=>{
-    let newUser = new Users(newCustomer)
-    await newUser.save()
-  })
+  // usersList.sort((a,b)=> b.total - a.total).forEach(async newCustomer=>{
+  //   let newUser = new Users(newCustomer)
+  //   await newUser.save()
+  // })
 
 
-  // Charge.all({}, function (error, list, pagination) {
-  //   if(error){
-  //    return console.log(error)
-  //   }
+  Charge.all({}, function (error, list, pagination) {
+    if(error){
+     return console.log(error)
+    }
+    console.log(...list.filter(li=>li.id === '9bbd6359-a5fd-41b4-bc77-0d5c33faf552'))
   //   console.log(list.length)
   //   let filtered = list.filter(charge=> charge.timeline[charge.timeline.length-1].status === 'COMPLETED' || charge.timeline[charge.timeline.length-1].status ==='RESOLVED' )
   //  filtered = filtered.map(trans =>{ return{name:trans.name, amount:Number(trans.pricing.local.amount)}})
@@ -196,7 +197,7 @@ try{
    
    
    
-  // }); 
+  }); 
  
 
 

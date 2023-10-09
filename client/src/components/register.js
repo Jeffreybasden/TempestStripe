@@ -29,7 +29,7 @@ const Register = (props) =>{
       const body = { name:name ,email:email, password:password}
       const headers = {"Content-Type":"application/json"}
         setLoading(true)
-         let res = await fetch(`http://localhost:4000/register`,
+         let res = await fetch(`https://tempestapi.onrender.com/register`,
           {
             method:"POST",
             headers,

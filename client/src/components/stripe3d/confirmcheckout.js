@@ -33,7 +33,7 @@ const CheckoutForm = (props) => {
     'Authorization': `Bearer ${jwt}`,
     "Content-Type":"application/json"
     }
-    
+    //https://tempestapi.onrender.com
    let res = await fetch(`http://localhost:4000/payment`,
     {
     method:"POST",

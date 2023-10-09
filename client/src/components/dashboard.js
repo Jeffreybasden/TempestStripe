@@ -92,7 +92,7 @@ const Dashboard = (props) =>{
       } 
       
       try{
-          let res = await fetch('http://localhost:4000/coinbase-user',{
+          let res = await fetch('https://tempestapi.onrender.com/coinbase-user',{
               method:"POST",
               body:JSON.stringify({name,type}),
               headers:{'Content-Type': 'application/json'}
