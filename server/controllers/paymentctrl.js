@@ -100,10 +100,12 @@ exports.CoinbasePay = async(req,res) => {
     if(error){
         console.log(error);
     }else{
-        let transaction
+                    let transaction
                     console.log('payment intent made')
-                    customer.coinbaseID = response.id
-                    await customer.save()
+                    if(customer){
+                        customer.coinbaseID = response.id
+                        await customer.save()
+                    }
                     
                     if(employeeId !== "undefined"){
                         console.log('EmployeeId is used')
@@ -113,7 +115,6 @@ exports.CoinbasePay = async(req,res) => {
                         transaction = new transactions({sourceId:response.id, source:'coinbase'})
                     } 
                     await transaction.save()
-                    console.log(customer.coinbaseID)
                     
         return res.json({url:response.hosted_url});
     }
@@ -128,7 +129,6 @@ exports.PayWallet = async(req,res) =>{
     let transaction = new transactions({employee:employeeID,total:amount,source:'metamask'})
     let savedTransaction = await transaction.save()
     console.log('metamask')
-   
         return res.json({})
    
 }
