@@ -1,5 +1,5 @@
 
-import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
+import { Routes, Route, useNavigate} from 'react-router-dom';
 import NavBar from './components/navbar';
 import LandingPage from './components/landingpage';
 import Dashboard from './components/dashboard';
@@ -22,22 +22,28 @@ const App = () => {
   const navigate = useNavigate()
 
   const connectWallet = async () => {
-    let provider = new ethers.providers.Web3Provider(window.ethereum)
-    let Signer = await provider.getSigner().getAddress()
-    setAccount(Signer)
-    let Network = await provider.getNetwork()
-    if (Network.chainId !== 43114) {
-      console.log(Network)
-      setAvax(true)
-    }
-    SetProvider(provider)
-    localStorage.setItem('loggedIn', 'true')
-    localStorage.setItem('wallet', Signer)
-    console.log('provider======>', provider)
-    setLoggedIn(true)
-    navigate('/dashboard')
-  }
+    try{
 
+      let provider = new ethers.providers.Web3Provider(window.ethereum)
+      let Signer = await provider.send("eth_requestAccounts", [])
+      Signer = Signer[0]
+      setAccount(Signer)
+      let Network = await provider.getNetwork()
+      if (Network.chainId !== 43114) {
+        console.log(Network)
+        setAvax(true)
+      }
+      SetProvider(provider)
+      localStorage.setItem('loggedIn', 'true')
+      localStorage.setItem('wallet', Signer)
+      console.log('provider======>', provider)
+      setLoggedIn(true)
+      navigate('/dashboard')
+    }catch(e){
+      console.log(e)
+    }
+}
+    
   window.ethereum?.on('chainChanged', async (Network) => {
     if (Network === '0xa86a') {
       setAvax(false)

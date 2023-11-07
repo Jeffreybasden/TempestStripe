@@ -86,7 +86,7 @@ const NavBar = (props) =>{
 
     if(localStorage.getItem("jwt")){
       const jwt = localStorage.getItem("jwt")
-      let res = await fetch('https://tempestapi.onrender.com/logout', {
+      let res = await fetch(process.env.REACT_APP_URL+'/logout', {
         method: 'POST',
             headers: {
               'Authorization': `Bearer ${jwt}`,

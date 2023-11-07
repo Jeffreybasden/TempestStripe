@@ -123,4 +123,13 @@ exports.CoinbasePay = async(req,res) => {
 
 }
 
+exports.PayWallet = async(req,res) =>{
+    let {employeeID,amount} = req.body
+    let transaction = new transactions({employee:employeeID,total:amount,source:'metamask'})
+    let savedTransaction = await transaction.save()
+    console.log('metamask')
+   
+        return res.json({})
+   
+}
 

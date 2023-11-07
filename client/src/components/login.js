@@ -45,7 +45,7 @@ const Login = (props) =>{
         "Content-Type":"application/json"
         }
           setLoading(true)
-          fetch(`https://tempestapi.onrender.com/login`,
+          fetch(process.env.REACT_APP_URL+`/login`,
           {
             method:"POST",
             headers,

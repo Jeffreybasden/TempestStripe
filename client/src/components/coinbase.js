@@ -83,14 +83,13 @@ const Coinbase = (props) => {
     
     try{
      
-        let res = await fetch('https://tempestapi.onrender.com/coinbase-user',{
+        let res = await fetch(process.env.REACT_APP_URL+'/coinbase-user',{
             method:"POST",
             body:JSON.stringify({name,type}),
             headers:{'Content-Type': 'application/json'}
         })
         if(res.ok){
             res = await res.json()
-            console.log(res)
             let tempData = res.reduce((acc,curr)=>{
                 let date = formatDateToLocalHumanReadable(curr.expires)
                 acc.push({key:curr.key, status:curr.status.status, link:curr.url, expires:date, amount:curr.amount.amount})
@@ -146,7 +145,7 @@ const Coinbase = (props) => {
     }
   try{
     setLoading(true)
-   let res = await fetch(`https://tempestapi.onrender.com/coinbase`,
+   let res = await fetch(process.env.REACT_APP_URL+'/coinbase',
     {
     method:"POST",
     headers,

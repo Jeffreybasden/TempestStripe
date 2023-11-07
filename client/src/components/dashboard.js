@@ -21,7 +21,7 @@ const ShowEmail = () =>{
 const Dashboard = (props) =>{
     const navigate = useNavigate()
     const [loading,setLoading] = useState(true)
-    const [name,setName] = useState('')
+    const [name,setName] = useState(props.account)
     const [balance, setBalance] = useState(0)
     const [staked,setStaked] = useState(0)
     const [cost,setCost] = useState(0)
@@ -62,7 +62,7 @@ const Dashboard = (props) =>{
       const body = {wallet:wallet}
       try{
         //tempestapi.onrender.com
-      let response = await fetch('https://tempestapi.onrender.com/add-wallet', {
+      let response = await fetch(process.env.REACT_APP_URL+'/add-wallet', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -81,49 +81,40 @@ const Dashboard = (props) =>{
   } 
 
     async function getTransactions(){
-      let name 
-      let type
-      if(localStorage.getItem('wallet')){
-          name = localStorage.getItem('wallet')
-          type = 'wallet'
-      }else{
-          name = localStorage.getItem('jwt')
-          type = 'jwt'
-      } 
-      
+
+         let name = localStorage.getItem('wallet')
+         let type = 'wallet'
+
       try{
-          let res = await fetch('https://tempestapi.onrender.com/coinbase-user',{
+          let res = await fetch(process.env.REACT_APP_URL+'/coinbase-transactions',{
               method:"POST",
-              body:JSON.stringify({name,type}),
+              body:JSON.stringify({name}),
               headers:{'Content-Type': 'application/json'}
           })
           if(res.ok){
-              res = await res.json() 
-              let tempData = res.reduce((acc,curr)=>{
-                if(curr.status.status === 'RESOLVED' || curr.status.status==='COMPLETED'){
-                   acc+=Number(curr.amount.amount)
-                }
-                return acc || 0
-              },0)
-              tempData = tempData/.25
+              let data = await res.json() 
+              let tempData = data/.25
               console.log(tempData)
               return tempData
           }else throw new Error('no info to show')
       }catch(e){
-          console.log(e)
-          getTransactions()
+          return 0
       }
   
    }
-    //get user info if its a wallet
+   
   async function getWalletInfo(){
       try{
+      
+      let Signer = localStorage.getItem('wallet')
+      console.log(Signer,props.account)
+      setName(Signer)
         let provider = new ethers.providers.JsonRpcProvider('https://api.avax.network/ext/bc/C/rpc')
           const userAddress = localStorage.getItem('wallet')
           const preTempestContract = new ethers.Contract(preTempestAddress, preTempestAbi,provider)
           let noFormatBalance = await preTempestContract.balanceOf(userAddress)
           noFormatBalance = noFormatBalance.toString()
-          let Balance = Number(ethers.utils.formatUnits(noFormatBalance,18)) + await getTransactions()
+          let Balance = Number(ethers.utils.formatUnits(noFormatBalance,18))
           let Cost = Balance *.15
           let Market = Balance*.15
           let Expected = (Market * 1.1)/12
@@ -132,6 +123,7 @@ const Dashboard = (props) =>{
           setMarketValue(Market)
           setExpectedRewards(Expected)
           setLoading(false)
+          setBalance(balance + await getTransactions())
          
         }catch(e){
           console.log(e)
@@ -145,7 +137,7 @@ const Dashboard = (props) =>{
       const jwt = localStorage.getItem('jwt')
       //https://tempestapi.onrender.com
   try{
-     let response = await fetch('http://localhost:4000/get-user', {
+     let response = await fetch(process.env.REACT_APP_URL+'/get-user', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${jwt}`,
@@ -218,7 +210,7 @@ const Dashboard = (props) =>{
         <div data-w-id="2fc6eb50-7d4a-7800-2204-b951b846909b" className="section wf-section">
         <div className="grid">
           <div id="w-node-_1f24ada2-6789-b07c-d844-ae0ba2fb5856-d68700ca" className="box vertical">
-            <div className="grey">Welcome back, <span id="user-name" className="person-name">{name}</span>!</div>
+            <div className="grey">Welcome back, <span id="user-name" className="person-name">{props.account}</span>!</div>
             <div className="h1 _10-margin-top">Your Current Balance:</div>
             {loading ? <Spin><div className="content" style={{margin:"20px"}} /></Spin>:<>
             <div className="light-blue-container _15-margin-top"><img src="images/coin-small_1coin-small.png" loading="lazy" alt="" className="coin-icon"/>

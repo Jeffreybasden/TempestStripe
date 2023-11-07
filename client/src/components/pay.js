@@ -46,8 +46,27 @@ const Pay = (props) => {
       icon: (
         icon
       ),
-    });
+    });   
   };
+
+  const saveWalletTransaction = async() =>{
+
+    try{
+
+      let employeeID  = localStorage.getItem("employeeId")
+      let res = await fetch(process.env.REACT_APP_URL+'/wallet',{
+        method:"POST",
+        headers:{'Content-Type': 'application/json'},
+        body:JSON.stringify({employeeID,amount})
+      })
+      
+      if(res.ok){
+        return
+      }
+    }catch(e){
+      return
+    }
+  }
 
     const getAmount = (e) =>{
     let total = (e.target.value/0.25).toFixed(2)
@@ -63,7 +82,7 @@ const Pay = (props) => {
     try{
       await usdcContract.approve(presaleContract.address, amountDecimals)
       await presaleContract.buyTokens(amount18Decimal*4)
-
+      await saveWalletTransaction()
     }catch(e){
       console.log(e)
       return openNotification('left',<CloseOutlined style={{color: 'red',}} /> ,e.message, 'Try Again')

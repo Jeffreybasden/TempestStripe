@@ -296,3 +296,16 @@ exports.getTeams = async(req,res) => {
 
 
 
+exports.deleteTeam = async (req,res) =>{
+    let id = req.query.params
+    console.log(id)
+    let deletedTeam = await Teams.deleteOne({_id:id})
+    res.status(200).end()
+}
+
+exports.addTeam = async(req,res) =>{
+    let {name} = req.body
+
+    let newTeam = new Teams({teamName:name})
+    await newTeam.save()
+}

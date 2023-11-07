@@ -34,7 +34,7 @@ const CheckoutForm = (props) => {
     "Content-Type":"application/json"
     }
     //https://tempestapi.onrender.com
-   let res = await fetch(`http://localhost:4000/payment`,
+   let res = await fetch(process.env.REACT_APP_URL+'/payment',
     {
     method:"POST",
     headers,

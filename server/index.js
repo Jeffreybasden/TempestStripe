@@ -34,5 +34,5 @@ mongoose.connect(process.env.INFO_LINK, {
   }).then(()=>{
     app.listen(4000, ()=> console.log('server started',process.env.STRIPE_PRIVATE_KEY, process.env.E_TEMPEST, process.env.INFO_LINK ))
 }).catch((e)=>{
-    console.log(e)
+    console.log("MONGOOSE ERROR MY BOY",e)
 })

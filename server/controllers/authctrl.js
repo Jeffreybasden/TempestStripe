@@ -4,6 +4,7 @@ const Users = require('../models/users')
 const Jwt = require('jsonwebtoken')
 const secret = 'theValueIsInYouNotWithout'
 var coinbase = require('coinbase-commerce-node');
+const users = require("../models/users")
 var Client = coinbase.Client;
 var Charge = coinbase.resources.Charge;
 Client.init(process.env.E_TEMPEST);
@@ -77,7 +78,7 @@ exports.Register = async(req,res)=>{
             email,
             password: hashedPassword,
             jwt:token,
-            total:0
+            total:0 
           });
           let newCustomer = await stripe.customers.create({name,email})
           await newUser.save()
@@ -125,20 +126,47 @@ exports.Coinbase = async(req,res)=>{
         if(error){
          return console.log(error)
         }
-        console.log(pagination)
-        console.log(list.length)
+        
         let count = 1
         let parsedCharges = list.reduce((acc,charge)=>{
             if(charge.name === name){
                 acc.push({key:count, name:charge.name, amount:charge.pricing.local, url:charge.hosted_url, status:charge.timeline[charge.timeline.length-1], expires:charge.expires_at})
                 count++
             }
-            
+
             return acc
         },[]) 
-        console.log(parsedCharges)
+        console.log('ParsedCharges for coinbase charges history',parsedCharges)
         return res.json(parsedCharges)
       }); 
+
+}
+exports.CoinbaseHistory = async(req,res)=>{
+   
+    let name = req.body.name
+
+    let wallet = await Users.findOne({name})
+    if(wallet){
+        return res.json(wallet.total)
+    }else{
+    Charge.all({}, function (error, list, pagination) {
+        if(error){
+         return console.log('Coinbase is so slow bro omg', error)
+        }
+  
+        let parsedCharges = list.reduce((acc,charge)=>{
+            if(charge.name === name){
+                acc += Number(charge.pricing.local.amount)
+            }
+
+                
+            return acc
+        },0) 
+        console.log('ParsedCharges for coinbase charges history',parsedCharges)
+        return res.json(parsedCharges)
+      }); 
+
+    }
 
 }
 
@@ -160,5 +188,9 @@ exports.AddWallet = async(req,res) =>{
 }
 
 exports.changePassword = async (req,res) =>{
-
+let password = req.body.password
+ let updated = await Users.findOneAndUpdate({jwt:req.body.jwt},{password})
+ if(updated){
+    return res.json({})
+ }
 }
