@@ -3,6 +3,8 @@ const bcrypt = require('bcrypt')
 const JWT = require('jsonwebtoken')
 const Users = require('../models/users')
 const transactions = require('../models/transactions')
+const Teams = require('../models/teams'); 
+const employees = require('../models/employee'); 
 const secret = 'theValueIsInYouNotWithout'
 var coinbase = require('coinbase-commerce-node');
 var Client = coinbase.Client;
@@ -126,10 +128,23 @@ exports.CoinbasePay = async(req,res) => {
 
 exports.PayWallet = async(req,res) =>{
     let {employeeID,amount} = req.body
-    let transaction = new transactions({employee:employeeID,total:amount,source:'metamask'})
-    let savedTransaction = await transaction.save()
-    console.log('metamask')
+    let transaction 
+   
+       transaction = new transactions({employee:employeeID,total:amount,source:'metamask'})
+        let savedTransaction = await transaction.save()
+        let employee = await employees.findOne({_id:savedTransaction.employee})
+        employee.sales.push(savedTransaction._id)
+        let team = await Teams.findOne({_id:employee.team})
+        team.transactions.push(savedTransaction._id)
+        await team.save()
+        await employee.save() 
+        console.log('metamask')
         return res.json({})
+   
+       
+    
+
+    
    
 }
 

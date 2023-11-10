@@ -155,8 +155,10 @@ exports.CoinbaseHistory = async(req,res)=>{
         }
   
         let parsedCharges = list.reduce((acc,charge)=>{
-            if(charge.name === name){
-                acc += Number(charge.pricing.local.amount)
+            if(charge.timeline[charge.timeline.length-1].status ==="COMPLETED" || charge.timeline[charge.timeline.length-1].status ==="RESOLVED"){
+                if(charge.name === name){ 
+                    acc += Number(charge.pricing.local.amount)
+                }
             }
 
                 

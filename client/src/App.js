@@ -5,8 +5,9 @@ import LandingPage from './components/landingpage';
 import Dashboard from './components/dashboard';
 import Login from './components/login'
 import Register from './components/register';
-import Pay from './components/pay';
+import PayWithMetamask from './components/paywithmetamask';
 import Coinbase from './components/coinbase';
+import PayWithStripe from './components/paywithstripe';
 
 import { CheckCircleOutlined, CloseOutlined } from '@ant-design/icons';
 import { notification, Alert, Space, } from 'antd';
@@ -121,7 +122,8 @@ const App = () => {
             <Route path='/dashboard' element={<Dashboard account={account} provider={Provider} notification={successfulAction} />} />
             <Route path='/register'  element={<Register setLoggedIn={setLoggedIn} notification={successfulAction} />} />
             <Route path='/login'  element={<Login setLoggedIn={setLoggedIn} notification={successfulAction} />} />
-            <Route path='/pay' element={<Pay provider={Provider} notification={successfulAction} />} />
+            <Route path='/metamask' element={<PayWithMetamask provider={Provider} notification={successfulAction} />} />
+            <Route path='/stripe' element={<PayWithStripe provider={Provider} notification={successfulAction} />} />
             <Route path='/commerce' element={<Coinbase provider={Provider} notification={successfulAction} />} />
             <Route path='*' element={<Dashboard notification={successfulAction} />} />
           </Routes>

@@ -60,12 +60,31 @@ const NavBar = (props) =>{
   ];
 
 
-  const options = [
+  const options = localStorage.getItem("wallet") ? [
     {
       key: '3',
       label: (
            <div><NavLink to={'/commerce'} style={{textDecoration: 'none'}}>
-            Pay with BTC Eth and more
+            Pay with BTC ETH and more
+           </NavLink>
+           </div> 
+      ),
+    },
+    {
+      key: '5',
+      label: (
+        <div> <NavLink to={'/metamask'} style={{textDecoration: 'none'}}>
+        Pay with Metamask Wallet
+        </NavLink>
+        </div>
+      ),
+    }
+  ] : [
+    {
+      key: '3',
+      label: (
+           <div><NavLink to={'/commerce'} style={{textDecoration: 'none'}}>
+            Pay with BTC ETH and more
            </NavLink>
            </div> 
       ),
@@ -73,8 +92,17 @@ const NavBar = (props) =>{
     {
       key: '4',
       label: (
-        <div> <NavLink to={'/pay'} style={{textDecoration: 'none'}}>
-        pay with card or wallet
+        <div> <NavLink to={'/stripe'} style={{textDecoration: 'none'}}>
+        Pay with Credit/Debit Card
+        </NavLink>
+        </div>
+      ),
+    },
+    {
+      key: '5',
+      label: (
+        <div> <NavLink to={'/metamask'} style={{textDecoration: 'none'}}>
+        Pay with Metamask Wallet
         </NavLink>
         </div>
       ),

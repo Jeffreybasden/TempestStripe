@@ -34,12 +34,31 @@ const Dashboard = (props) =>{
     const [wallet, setWallet] = useState('')
     const [isWallet, setIsWallet] = useState(false)
     let {id} = useParams()
-    const options = [
+    const options = localStorage.getItem("wallet") ? [
       {
         key: '3',
         label: (
              <div><NavLink to={'/commerce'} style={{textDecoration: 'none'}}>
-              Pay with BTC Eth and more
+              Pay with BTC ETH and more
+             </NavLink>
+             </div> 
+        ),
+      },
+      {
+        key: '5',
+        label: (
+          <div> <NavLink to={'/metamask'} style={{textDecoration: 'none'}}>
+          Pay with Metamask Wallet
+          </NavLink>
+          </div>
+        ),
+      }
+    ] : [
+      {
+        key: '3',
+        label: (
+             <div><NavLink to={'/commerce'} style={{textDecoration: 'none'}}>
+              Pay with BTC ETH and more
              </NavLink>
              </div> 
         ),
@@ -47,8 +66,17 @@ const Dashboard = (props) =>{
       {
         key: '4',
         label: (
-          <div> <NavLink to={'/pay'} style={{textDecoration: 'none'}}>
-          pay with card or wallet
+          <div> <NavLink to={'/stripe'} style={{textDecoration: 'none'}}>
+          Pay with Credit/Debit Card
+          </NavLink>
+          </div>
+        ),
+      },
+      {
+        key: '5',
+        label: (
+          <div> <NavLink to={'/metamask'} style={{textDecoration: 'none'}}>
+          Pay with Metamask Wallet
           </NavLink>
           </div>
         ),
@@ -144,13 +172,24 @@ const Dashboard = (props) =>{
           'Content-Type': 'application/json'
         }
       })
-        
+      let walletData = 0;
+      if(window.ethereum){
+        console.log("yes Bihh")
+        let accounts = await window.ethereum.send("eth_requestAccounts", [])
+        let provider = new ethers.providers.JsonRpcProvider('https://api.avax.network/ext/bc/C/rpc')
+        const userAddress = accounts[0]
+        console.log(userAddress)
+        const preTempestContract = new ethers.Contract(preTempestAddress, preTempestAbi,provider)
+        let noFormatBalance = await preTempestContract.balanceOf(userAddress)
+        noFormatBalance = noFormatBalance.toString()
+        walletData = Number(ethers.utils.formatUnits(noFormatBalance,18))
+      }
+
       if(response.ok){
          let data = await response.json();
-         console.log('original===========',data.purchase_amount)
          // Process the response data
+         data.purchase_amount+= walletData
          let converted = data.purchase_amount/.25 || 0
-         console.log('converted=======',converted)
         //  let Balance = converted + (await getTransactions())
          let Cost = converted *.25
          let Market = converted*.25
@@ -210,7 +249,7 @@ const Dashboard = (props) =>{
         <div data-w-id="2fc6eb50-7d4a-7800-2204-b951b846909b" className="section wf-section">
         <div className="grid">
           <div id="w-node-_1f24ada2-6789-b07c-d844-ae0ba2fb5856-d68700ca" className="box vertical">
-            <div className="grey">Welcome back, <span id="user-name" className="person-name">{props.account}</span>!</div>
+            <div className="grey">Welcome back, <span id="user-name" className="person-name">{name}</span>!</div>
             <div className="h1 _10-margin-top">Your Current Balance:</div>
             {loading ? <Spin><div className="content" style={{margin:"20px"}} /></Spin>:<>
             <div className="light-blue-container _15-margin-top"><img src="images/coin-small_1coin-small.png" loading="lazy" alt="" className="coin-icon"/>
