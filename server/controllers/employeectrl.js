@@ -63,7 +63,7 @@ exports.register = async(req,res) =>{
             res.json({token:Employee._id, admin:false}) 
         }
     } catch (error) {
-        res.json({error:error}) 
+      res.status(400).end()
     } 
 
 }

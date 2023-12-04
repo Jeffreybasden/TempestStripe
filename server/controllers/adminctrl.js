@@ -4,13 +4,15 @@ const adminUser = require('../models/adminUser')
 const Teams = require('../models/teams')
 var coinbase = require('coinbase-commerce-node');
 const employees = require('../models/employee');
+const contractABI = require('../abi/presaleContractAbi.json')
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY)
-
+const {ethers} = require('ethers')
 var Client = coinbase.Client;
 var charge = coinbase.resources.Charge
 Client.init(process.env.E_TEMPEST);
-const secret = 'theValueIsInYouNotWithout'
 
+const secret = 'theValueIsInYouNotWithout'
+let provider = new ethers.providers.JsonRpcProvider('https://api.avax.network/ext/bc/C/rpc')
 // helper functions 
 function isDateInPastWeek(dateToCheck) {
     const checkDate = new Date(dateToCheck)
@@ -177,13 +179,49 @@ const stripeSearch = async(name,time)=>{
 }
 
 
+
+async function getContractTransactionHistory() {
+   
+    // Replace with your smart contract address
+    const contractAddress = '0x07E2686f9E06f690fE36cB2d128767C6E067b51b';
+ 
+    // Instantiate the contract
+    const contract = new ethers.Contract(contractAddress, contractABI, provider);
+  
+    // Specify the event name for which you want to query the filter
+    const eventName = "buyTokens"; // Replace with the actual event name
+    const eventFilter = contract.filters.TokensPurchased(null,null) 
+  console.log(eventFilter)
+    // Get the contract's transaction history for the specified event using queryFilter
+    const events = await contract.queryFilter(eventFilter,37668682, "latest" );
+    console.log(events)
+    // Iterate through the events and fetch additional details 
+    for (const event of events) {
+      const tx = await provider.getTransaction(event.transactionHash);
+  
+      // Get additional transaction details
+      const block = await provider.getBlock(tx.blockHash);
+      const timestamp = block.timestamp;
+      const senderAddress = tx.from;
+      const amountSent = ethers.utils.formatUnits(tx.value, 'ether');
+  
+      // Print transaction details
+      console.log('Transaction Details:');
+      console.log('---------------------');
+      console.log('Wallet Address:', senderAddress);
+      console.log('Timestamp:', new Date(timestamp * 1000)); // Convert to human-readable date
+      console.log('Amount Sent:', amountSent, 'ETH');
+      console.log('---------------------');
+    }
+  }
+
 exports.getData = async(req,res) =>{
 try {
     const {user,time} = req.body
    
-    let coinbaseFiltered = await coinbaseSearch(user,time)
+    let walletFiltered = await getContractTransactionHistory()
     let stripeFiltered = await stripeSearch(user,time)
-    let walletFiltered 
+    let coinbaseFiltered = await coinbaseSearch(user,time)
     let fullTransaction = coinbaseFiltered.concat(stripeFiltered)
     fullTransaction = fullTransaction.filter(charge=> charge.email !== null)
     res.json(fullTransaction)
@@ -194,7 +232,7 @@ try {
 }
 
 
-}
+} 
 
 exports.getTotal = async(req,res) =>{
  try{
@@ -225,7 +263,7 @@ exports.login = async(req,res)=>{
                 admin.jwt = token
                 await admin.save() 
                 res.json({token:admin._id, admin:true})
-            }else res.json({error:'access denied'})
+            }else res.status(400).end()
     
         }else if(employee){
             const validPassword = await bcrypt.compare(password,employee.password)
@@ -233,14 +271,14 @@ exports.login = async(req,res)=>{
                 employee.jwt = token
                 await employee.save() 
                 res.json({token:employee._id, admin:false})
-            }else res.json({error:'access denied'})
+            }else res.status(400).end()
         }else{
-            res.json({error:'access denied'})
+            res.status(400).end()
         }
              
     } catch (error) {
         console.log(error)
-        res.json({error:'access denied'})
+        res.status(400).end()
     }
 
 }
@@ -256,7 +294,7 @@ exports.register = async(req,res) => {
         await newAdmin.save()
         res.json({token:newAdmin._id, admin:true}) 
     } catch (error) {
-        res.json({error:error}) 
+        res.status(400).end()
     }
 
 }
@@ -288,7 +326,7 @@ exports.getTeams = async(req,res) => {
         return {teamName, total, employeeTotal}
     })
 
-    console.log(...populatedTeams)
+    
     res.json(populatedTeams)
 
 
